@@ -46,13 +46,24 @@
   }
 }
 .sidebar {
-  background: linear-gradient(165deg, #163e33 0%, #102e27 100%);
+  background-color: #102e27;
+  background-image: linear-gradient(165deg, #163e33 0%, #102e27 100%);
 }
 .hero-grid {
   background-image:
     linear-gradient(#ffffff07 1px, transparent 1px),
     linear-gradient(90deg, #ffffff07 1px, transparent 1px);
   background-size: 28px 28px;
+}
+.sidebar.hero-grid {
+  background-image:
+    linear-gradient(#ffffff07 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff07 1px, transparent 1px),
+    linear-gradient(165deg, #163e33 0%, #102e27 100%);
+  background-size:
+    28px 28px,
+    28px 28px,
+    100% 100%;
 }
 @media (prefers-reduced-motion: reduce) {
   *,

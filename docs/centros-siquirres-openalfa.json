@@ -1,0 +1,78 @@
+{
+  "source": "https://costa-rica-streets.openalfa.com/canton-siquirres/education",
+  "retrievedAt": "2026-10-26",
+  "attribution": "OpenAlfa / © OpenStreetMap contributors, ODbL",
+  "criteria": "Operador MEP y localidad Siquirres explícitos en la fuente; sin inferir distrito de entradas sin localidad.",
+  "entries": [
+    {
+      "idx": 13,
+      "lat": 10.0939,
+      "lon": -83.489613,
+      "name": "Escuela Betania",
+      "address": "Calle Betania Siquirres"
+    },
+    {
+      "idx": 25,
+      "lat": 10.124295,
+      "lon": -83.508954,
+      "name": "Escuela El Cocal",
+      "address": "Vía 806 Siquirres"
+    },
+    {
+      "idx": 26,
+      "lat": 10.094905,
+      "lon": -83.536459,
+      "name": "Escuela El Coco",
+      "address": "Vía 10 Siquirres"
+    },
+    {
+      "idx": 40,
+      "lat": 10.114073,
+      "lon": -83.48007,
+      "name": "Escuela Indiana Dos",
+      "address": "Calle Ramal Indiana Siquirres"
+    },
+    {
+      "idx": 44,
+      "lat": 10.106659,
+      "lon": -83.497046,
+      "name": "Escuela La Amelia",
+      "address": "Avenida 17A Siquirres"
+    },
+    {
+      "idx": 50,
+      "lat": 10.153476,
+      "lon": -83.451672,
+      "name": "Escuela La Lucha",
+      "address": "Calle La Lucha Siquirres"
+    },
+    {
+      "idx": 56,
+      "lat": 10.101737,
+      "lon": -83.504953,
+      "name": "Escuela Líder Sector Norte",
+      "address": "Avenida 7 Siquirres"
+    },
+    {
+      "idx": 69,
+      "lat": 10.152638,
+      "lon": -83.473655,
+      "name": "Escuela San Alberto",
+      "address": "Calle San Alberto Siquirres"
+    },
+    {
+      "idx": 77,
+      "lat": 10.100789,
+      "lon": -83.514595,
+      "name": "Escuela Siquirrito",
+      "address": "Avenida 0A Siquirres"
+    },
+    {
+      "idx": 78,
+      "lat": 10.098761,
+      "lon": -83.492664,
+      "name": "Escuela Tobías Vaglio",
+      "address": "Siquirres"
+    }
+  ]
+}

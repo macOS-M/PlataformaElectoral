@@ -2,6 +2,15 @@ import "server-only";
 import { getAccessContext } from "@/server/authorization/context";
 import { centerFiltersSchema } from "./schemas";
 import { readCenters } from "./repository";
+import { isGlobalAdmin } from "@/server/authorization/policy";
+import { newCenterSchema } from "./schemas";
+import { createCenter } from "./repository";
+
+export async function addCenter(input: unknown) {
+  const scope = await getAccessContext();
+  if (!scope || !isGlobalAdmin(scope)) throw new Error("Sin permiso de administración");
+  await createCenter(scope, newCenterSchema.parse(input));
+}
 export async function getCenters(
   input: Record<string, string | string[] | undefined>,
 ) {

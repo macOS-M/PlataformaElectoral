@@ -4,22 +4,93 @@ import { PageHeading } from "@/components/page-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
+import { ResponsibleForm } from "@/modules/organization/forms";
+import { getAccessContext } from "@/server/authorization/context";
+import { canEditPosition } from "@/server/authorization/policy";
 export const metadata = { title: "Organigrama" };
 export default async function Organigram() {
   const org = await getOrganization();
+  const scope = await getAccessContext();
   const general = org.positions.find((x) => x.kind === "general");
+  function responsible(post: { id: string }) {
+    const position = org.positions.find((p) => p.id === post.id);
+    const areaCode =
+      org.areas.find((a) => a.id === position?.functionalAreaId)?.code ?? null;
+    const canAssign = canEditPosition(
+      scope,
+      position?.kind === "area" || position?.kind === "area_link"
+        ? areaCode
+        : null,
+    );
+    const current = org.assignments.find(
+      (a) => a.positionId === post.id && !a.endedAt,
+    );
+    const person = org.people.find((p) => p.id === current?.personId);
+    const history = org.assignments.filter(
+      (a) => a.positionId === post.id && a.endedAt,
+    );
+    return (
+      <div className="mt-2 space-y-2">
+        <p className="text-sm font-semibold">{person?.fullName ?? "Vacante"}</p>
+        {person?.phone && (
+          <p className="break-all text-xs text-muted-foreground">
+            {person.phone}
+          </p>
+        )}
+        {person?.email && (
+          <p className="break-all text-xs text-muted-foreground">
+            {person.email}
+          </p>
+        )}
+        {canAssign && (
+          <ResponsibleForm
+            key={current?.id ?? "vacant"}
+            positionId={post.id}
+            current={current}
+            people={org.people.filter((person) => person.assignable)}
+          />
+        )}
+        {!!history.length && (
+          <details className="text-left text-xs">
+            <summary className="cursor-pointer text-muted-foreground">
+              Historial ({history.length})
+            </summary>
+            <ul className="mt-2 space-y-2">
+              {history.map((a) => (
+                <li key={a.id}>
+                  {a.fullName} ·{" "}
+                  {a.startedAt.toLocaleDateString("es-CR", {
+                    timeZone: "America/Costa_Rica",
+                  })}{" "}
+                  —{" "}
+                  {a.endedAt?.toLocaleDateString("es-CR", {
+                    timeZone: "America/Costa_Rica",
+                  })}
+                  <p className="text-muted-foreground">{a.endedReason}</p>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </div>
+    );
+  }
   return (
     <>
       <PageHeading
         eyebrow="Estructura organizacional"
         title="Organigrama cantonal"
-        description="La coordinación general conecta a los distritos y las áreas funcionales. Consulta los puestos definidos para este cantón."
+        description="La coordinación general conecta a los distritos y las áreas funcionales. Asigna personas ya registradas a los puestos cantonales, distritales y de las nueve áreas."
       >
         <Badge>
           <Network size={13} className="mr-1.5" />
-          Estructura inicial
+          Responsables y vacantes
         </Badge>
       </PageHeading>
+      <p className="text-sm text-muted-foreground">
+        Solo los usuarios con una cuenta y acceso activo a la plataforma pueden
+        recibir nuevas asignaciones.
+      </p>
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -42,11 +113,11 @@ export default async function Organigram() {
                 <h2 className="font-semibold">
                   {general?.name ?? "Coordinación general pendiente"}
                 </h2>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {general
-                    ? "Puesto definido · asignación pendiente"
-                    : "No hay puesto general registrado"}
-                </p>
+                {general ? (
+                  responsible(general)
+                ) : (
+                  <p>No hay puesto general registrado</p>
+                )}
               </div>
               <div className="mx-auto h-8 w-px bg-border" />
               <div className="grid gap-6 lg:grid-cols-2">
@@ -88,9 +159,7 @@ export default async function Organigram() {
                           className="rounded-lg border bg-card p-4"
                         >
                           <p className="text-sm font-medium">{post.name}</p>
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            Asignación pendiente
-                          </p>
+                          {responsible(post)}
                         </li>
                       ))}
                     </ul>
@@ -106,10 +175,9 @@ export default async function Organigram() {
           )}
         </CardContent>
       </Card>
-      <p className="text-xs leading-relaxed text-muted-foreground">
-        Esta vista presenta el catálogo de puestos. El registro de personas, las
-        suplencias y la gestión de asignaciones se habilitarán en el siguiente
-        sprint.
+      <p className="text-xs text-muted-foreground">
+        La edición requiere administración global o permiso asignado a este
+        módulo. Estos cargos son responsabilidades internas de coordinación.
       </p>
     </>
   );

@@ -7,6 +7,7 @@ import { createAuthClient } from "@/server/auth/supabase";
 import { getDb } from "@/server/db/client";
 import {
   memberships,
+  modulePermissions,
   organizationCantons,
   organizations,
   cantons,
@@ -15,6 +16,8 @@ import {
 import { canAccessMembership } from "./policy";
 export type AccessContext = {
   userId: string;
+  role: "admin" | "member";
+  editableModules: string[];
   organizationId: string;
   cantonId: string;
   eventId: string;
@@ -73,7 +76,19 @@ export const getAccessContext = cache(
       )
       .limit(1);
     if (!scope) redirect("/sin-acceso");
+    const permissions = await db
+      .select({ module: modulePermissions.module })
+      .from(modulePermissions)
+      .where(
+        and(
+          eq(modulePermissions.organizationId, config.APP_ORGANIZATION_ID),
+          eq(modulePermissions.userId, data.user.id),
+          eq(modulePermissions.cantonId, config.APP_CANTON_ID),
+        ),
+      );
     return {
+      role: member.role === "admin" ? "admin" : "member",
+      editableModules: permissions.map((p) => p.module),
       userId: data.user.id,
       organizationId: config.APP_ORGANIZATION_ID,
       cantonId: config.APP_CANTON_ID,

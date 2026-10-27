@@ -1,5 +1,15 @@
 import { z } from "zod";
+import { cedulaSchema } from "@/modules/access/schemas";
 export const loginSchema = z.object({
-  email: z.email("Escribe un correo válido.").max(254),
-  password: z.string().min(1, "Escribe tu contraseña.").max(256),
+  identifier: z
+    .string()
+    .trim()
+    .max(254)
+    .refine(
+      (value) =>
+        z.email().safeParse(value).success ||
+        cedulaSchema.safeParse(value).success,
+      "Escribe una cédula válida.",
+    ),
+  password: z.string().min(1).max(256),
 });

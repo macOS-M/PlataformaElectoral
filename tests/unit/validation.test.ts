@@ -26,8 +26,9 @@ describe("Filtros de centros", () => {
   });
 });
 describe("Autorización", () => {
-  it("solo permite membresías administrativas activas", () => {
+  it("permite administradores y usuarios activos", () => {
     expect(canAccessMembership({ active: true, role: "admin" })).toBe(true);
+    expect(canAccessMembership({ active: true, role: "member" })).toBe(true);
   });
   it.each([
     null,
@@ -39,7 +40,7 @@ describe("Autorización", () => {
   });
   it("rechaza acceso sin correo válido o contraseña", () => {
     expect(
-      loginSchema.safeParse({ email: "correo", password: "" }).success,
+      loginSchema.safeParse({ identifier: "correo", password: "" }).success,
     ).toBe(false);
   });
 });

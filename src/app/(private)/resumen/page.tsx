@@ -166,8 +166,8 @@ export default async function Dashboard() {
               ))}
             </ul>
             <p className="mt-6 border-t pt-4 text-xs leading-relaxed text-muted-foreground">
-              Las asignaciones de personas y la edición de centros se
-              incorporarán en los siguientes incrementos.
+              Ya puedes asignar personas registradas como responsables desde el
+              organigrama. La edición de centros continúa pendiente.
             </p>
           </CardContent>
         </Card>
