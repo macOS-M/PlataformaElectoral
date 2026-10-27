@@ -1,4 +1,9 @@
 import { z } from "zod";
+export const newCenterSchema = z.object({
+  name: z.string().trim().min(2).max(160),
+  address: z.string().trim().min(2).max(500),
+  districtId: z.guid(),
+});
 export const centerFiltersSchema = z.object({
   q: z.string().trim().max(100).default(""),
   // PostgreSQL permite UUID sin versión RFC específica (incluidas semillas deterministas).

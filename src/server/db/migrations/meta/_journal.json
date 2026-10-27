@@ -15,6 +15,55 @@
       "when": 1792805948297,
       "tag": "0001_security_and_timestamps",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792911839142,
+      "tag": "0002_normal_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792962162409,
+      "tag": "0003_brief_madrox",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792962676034,
+      "tag": "0004_registration_metadata",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792963310303,
+      "tag": "0005_remarkable_randall",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792963891652,
+      "tag": "0006_support_real_names",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792998286188,
+      "tag": "0007_centers_create",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792999021530,
+      "tag": "0008_colorful_amazoness",
+      "breakpoints": true
     }
   ]
 }

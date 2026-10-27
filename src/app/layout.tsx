@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata = {
   title: {
-    default: "Cantonal · Plataforma Electoral",
-    template: "%s · Cantonal",
+    default: "TBA · Plataforma Electoral",
+    template: "%s · TBA",
   },
   description: "Organización y gestión territorial cantonal",
   robots: { index: false, follow: false },

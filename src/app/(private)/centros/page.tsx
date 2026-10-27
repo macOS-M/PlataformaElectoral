@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
+import { getAccessContext } from "@/server/authorization/context";
+import { isGlobalAdmin } from "@/server/authorization/policy";
 export const metadata = { title: "Centros de votación" };
 export default async function Centers({
   searchParams,
@@ -16,9 +18,10 @@ export default async function Centers({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const [data, org] = await Promise.all([
+  const [data, org, scope] = await Promise.all([
     getCenters(params),
     getOrganization(),
+    getAccessContext(),
   ]);
   const url = (page: number) =>
     `/centros?${new URLSearchParams({ q: data.filters.q, district: data.filters.district, status: data.filters.status, page: String(page) })}`;
@@ -29,11 +32,15 @@ export default async function Centers({
         title="Centros de votación"
         description="Consulta los centros del evento seleccionado y su información de referencia. Los estados internos no equivalen a una ratificación oficial."
       >
+        <div className="flex flex-wrap items-center gap-3">
+        {isGlobalAdmin(scope) && <Button asChild><Link href="/centros/nuevo">Agregar centro</Link></Button>}
         <Badge>
           <School size={13} className="mr-1.5" />
           Catálogo inicial
         </Badge>
+        </div>
       </PageHeading>
+      {params.created === "1" && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Centro registrado. Está pendiente de verificar.</p>}
       <Card>
         <form
           className="grid items-end gap-4 border-b p-5 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_auto]"
@@ -135,7 +142,6 @@ export default async function Centers({
                     "Distrito",
                     "JRV declaradas",
                     "Estado interno",
-                    "Origen",
                   ].map((x) => (
                     <th
                       scope="col"
@@ -151,7 +157,8 @@ export default async function Centers({
                 {data.rows.map((center) => (
                   <tr key={center.id} className="border-t">
                     <td className="min-w-60 px-5 py-4">
-                      <span className="block font-medium">{center.name}</span>
+                      <Link href={`/centros/${center.id}`} className="block font-medium text-primary underline-offset-4 hover:underline">{center.name}</Link>
+                      <span className="mt-1 block text-xs text-muted-foreground">{center.address}</span>
                       <span className="mt-1 block text-xs text-muted-foreground">
                         {center.code
                           ? `Código: ${center.code}`
@@ -164,13 +171,6 @@ export default async function Centers({
                     </td>
                     <td className="px-5 py-4">
                       <Badge>{statusLabels[center.status]}</Badge>
-                    </td>
-                    <td className="px-5 py-4 text-xs">
-                      {center.source === "demo"
-                        ? "Demostración"
-                        : center.source === "oficial"
-                          ? "Fuente oficial"
-                          : "Carga manual"}
                     </td>
                   </tr>
                 ))}
@@ -222,8 +222,7 @@ export default async function Centers({
         </div>
       </Card>
       <p className="text-xs text-muted-foreground">
-        Alta, edición, asignación de responsables e importación estarán
-        disponibles en los siguientes incrementos.
+        Selecciona una escuela para abrir sus áreas, encargados y documentos.
       </p>
     </>
   );

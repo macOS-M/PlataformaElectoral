@@ -24,6 +24,8 @@ function query(result: unknown[]) {
     where: () => builder,
     innerJoin: () => builder,
     limit: async () => result,
+    then: (resolve: (value: unknown[]) => unknown) =>
+      Promise.resolve(result).then(resolve),
   };
   return builder;
 }
@@ -81,7 +83,8 @@ describe("Acceso a datos desde servidor", () => {
             isDemo: true,
           },
         ]),
-      );
+      )
+      .mockReturnValueOnce(query([]));
     expect(await getAccessContext()).toMatchObject({
       userId: "user",
       organizationId: "org",

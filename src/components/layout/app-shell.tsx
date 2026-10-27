@@ -29,7 +29,7 @@ export function AppShell({
             <Compass size={25} aria-hidden="true" />
           </span>
           <span className="text-lg font-semibold tracking-tight">
-            Cantonal
+            TBA
             <span className="mt-0.5 block text-[10px] font-medium tracking-[0.18em] text-emerald-100/60">
               PLATAFORMA ELECTORAL
             </span>
@@ -47,7 +47,7 @@ export function AppShell({
         <p className="mt-8 px-8 text-[10px] font-semibold tracking-[0.18em] text-emerald-100/40 max-lg:hidden">
           GESTIÓN CANTONAL
         </p>
-        <Navigation />
+        <Navigation admin={scope?.role === "admin"} />
         <div className="mt-auto hidden p-6 lg:block">
           <div className="rounded-xl border border-white/10 p-4">
             <ShieldCheck className="mb-3 text-emerald-300" size={20} />
@@ -67,7 +67,15 @@ export function AppShell({
           <Breadcrumb />
           <div className="flex items-center gap-3">
             <Badge className="hidden sm:inline-flex">
-              {scope ? "Acceso privado" : "Vista inicial"}
+              {scope
+                ? scope.role === "admin"
+                  ? "Admin global"
+                  : scope.editableModules.includes("district")
+                    ? "Coordinación distrital"
+                    : scope.editableModules.length
+                      ? "Coordinador de área"
+                      : "Solo lectura"
+                : "Vista inicial"}
             </Badge>
             {scope ? (
               <form action={signOut}>
@@ -100,13 +108,14 @@ export function AppShell({
             </div>
           ) : scope.isDemo ? (
             <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
-              <strong>Entorno de demostración.</strong> Los centros y
-              territorios de este evento son sintéticos, sin validez oficial.
+              <strong>Entorno de demostración.</strong> La información
+              registrada es de coordinación interna y no tiene verificación
+              oficial.
             </div>
           ) : null}
           {children}
           <footer className="flex flex-wrap justify-between gap-2 border-t pt-5 text-xs text-muted-foreground">
-            <span>Plataforma Electoral Cantonal</span>
+            <span>Plataforma Electoral TBA</span>
             <span>Organización y territorio · Costa Rica</span>
           </footer>
         </main>

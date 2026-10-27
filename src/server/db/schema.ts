@@ -81,13 +81,13 @@ export const memberships = electoral.table(
       .notNull()
       .references(() => organizations.id),
     userId: uuid("user_id").notNull(),
-    role: text("role").notNull().default("admin"),
+    role: text("role").notNull().default("member"),
     active: boolean("active").notNull().default(true),
     ...timestamps(),
   },
   (t) => [
     primaryKey({ columns: [t.organizationId, t.userId] }),
-    check("membership_role", sql`${t.role} = 'admin'`),
+    check("membership_role", sql`${t.role} IN ('admin', 'member')`),
   ],
 );
 export const functionalAreas = electoral.table(
@@ -199,6 +199,73 @@ export const positions = electoral.table(
       .where(sql`${t.active} AND ${t.kind} = 'area'`),
   ],
 );
+export const people = electoral.table(
+  "people",
+  {
+    id: id(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    fullName: text("full_name").notNull(),
+    email: text("email"),
+    phone: text("phone"),
+    notes: text("notes"),
+    ...timestamps(),
+  },
+  (t) => [
+    unique("person_org_unique").on(t.id, t.organizationId),
+    check(
+      "person_name_required",
+      sql`length(trim(${t.fullName})) BETWEEN 2 AND 160`,
+    ),
+    index("people_org_idx").on(t.organizationId),
+  ],
+);
+export const assignments = electoral.table(
+  "organizational_assignments",
+  {
+    id: id(),
+    organizationId: uuid("organization_id").notNull(),
+    cantonId: uuid("canton_id").notNull(),
+    positionId: uuid("position_id").notNull(),
+    personId: uuid("person_id").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    endedReason: text("ended_reason"),
+    createdBy: uuid("created_by").notNull(),
+  },
+  (t) => [
+    foreignKey({
+      name: "assignment_position_scope_fk",
+      columns: [t.positionId, t.organizationId, t.cantonId],
+      foreignColumns: [
+        positions.id,
+        positions.organizationId,
+        positions.cantonId,
+      ],
+    }),
+    foreignKey({
+      name: "assignment_person_scope_fk",
+      columns: [t.personId, t.organizationId],
+      foreignColumns: [people.id, people.organizationId],
+    }),
+    uniqueIndex("one_current_assignment")
+      .on(t.positionId)
+      .where(sql`${t.endedAt} IS NULL`),
+    check(
+      "assignment_dates",
+      sql`${t.endedAt} IS NULL OR ${t.endedAt} >= ${t.startedAt}`,
+    ),
+    check(
+      "assignment_end_reason",
+      sql`(${t.endedAt} IS NULL AND ${t.endedReason} IS NULL) OR (${t.endedAt} IS NOT NULL AND length(trim(${t.endedReason})) BETWEEN 3 AND 500)`,
+    ),
+    index("assignment_person_idx").on(t.organizationId, t.personId),
+  ],
+);
+
 export const electionEvents = electoral.table(
   "election_events",
   {
@@ -335,3 +402,144 @@ export const auditLogs = electoral.table("audit_logs", {
     .notNull()
     .defaultNow(),
 });
+
+export const centerAreaAssignments = electoral.table("center_area_assignments", {
+  id: id(),
+  organizationId: uuid("organization_id").notNull(),
+  centerElectionId: uuid("center_election_id").notNull(),
+  eventId: uuid("event_id").notNull(),
+  areaId: uuid("area_id").notNull(),
+  personId: uuid("person_id").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  endedAt: timestamp("ended_at", { withTimezone: true }),
+  endedReason: text("ended_reason"),
+  createdBy: uuid("created_by").notNull(),
+}, t => [
+  foreignKey({ columns: [t.centerElectionId, t.organizationId, t.eventId], foreignColumns: [centerElections.id, centerElections.organizationId, centerElections.eventId] }),
+  foreignKey({ columns: [t.areaId, t.organizationId], foreignColumns: [functionalAreas.id, functionalAreas.organizationId] }),
+  foreignKey({ columns: [t.personId, t.organizationId], foreignColumns: [people.id, people.organizationId] }),
+  uniqueIndex("center_area_current").on(t.centerElectionId, t.areaId).where(sql`${t.endedAt} IS NULL`),
+  check("center_area_end", sql`(${t.endedAt} IS NULL AND ${t.endedReason} IS NULL) OR (${t.endedAt} >= ${t.startedAt} AND length(trim(${t.endedReason})) BETWEEN 3 AND 500)`),
+]);
+
+export const centerAreaDocuments = electoral.table("center_area_documents", {
+  id: id(),
+  organizationId: uuid("organization_id").notNull(),
+  centerElectionId: uuid("center_election_id").notNull(),
+  eventId: uuid("event_id").notNull(),
+  areaId: uuid("area_id").notNull(),
+  storagePath: text("storage_path").notNull().unique(),
+  filename: text("filename").notNull(),
+  category: text("category").notNull(),
+  mimeType: text("mime_type").notNull(),
+  byteSize: integer("byte_size").notNull(),
+  uploadedBy: uuid("uploaded_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => [
+  foreignKey({ columns: [t.centerElectionId, t.organizationId, t.eventId], foreignColumns: [centerElections.id, centerElections.organizationId, centerElections.eventId] }),
+  foreignKey({ columns: [t.areaId, t.organizationId], foreignColumns: [functionalAreas.id, functionalAreas.organizationId] }),
+  check("center_document_size", sql`${t.byteSize} BETWEEN 1 AND 5242880`),
+  check("center_document_type", sql`${t.mimeType} IN ('application/pdf','image/jpeg','image/png')`),
+  check("center_document_category", sql`${t.category} IN ('contrato','cedula','otro')`),
+]);
+
+export const modulePermissions = electoral.table(
+  "module_permissions",
+  {
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id").notNull(),
+    cantonId: uuid("canton_id").notNull(),
+    module: text("module").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.organizationId, t.userId, t.cantonId, t.module] }),
+    foreignKey({
+      name: "permission_membership_fk",
+      columns: [t.organizationId, t.userId],
+      foreignColumns: [memberships.organizationId, memberships.userId],
+    }),
+    foreignKey({
+      name: "permission_scope_fk",
+      columns: [t.organizationId, t.cantonId],
+      foreignColumns: [
+        organizationCantons.organizationId,
+        organizationCantons.cantonId,
+      ],
+    }),
+    check(
+      "permission_module",
+      sql`${t.module} IN ('district','organigrama','centros','A01','A02','A03','A04','A05','A06','A07','A08','A09')`,
+    ),
+  ],
+);
+export const registrationAuthorizations = electoral.table(
+  "registration_authorizations",
+  {
+    id: id(),
+    organizationId: uuid("organization_id")
+      .notNull()
+      .references(() => organizations.id),
+    cantonId: uuid("canton_id").notNull(),
+    identifierHash: text("identifier_hash").notNull().unique(),
+    identifierHint: text("identifier_hint").notNull(),
+    activationHash: text("activation_hash"),
+    role: text("role").notNull().default("member"),
+    modules: text("modules")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    authorizedBy: uuid("authorized_by").notNull(),
+    userId: uuid("user_id").unique(),
+    active: boolean("active").notNull().default(true),
+    claimToken: uuid("claim_token"),
+    claimExpiresAt: timestamp("claim_expires_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    foreignKey({
+      name: "registration_scope_fk",
+      columns: [t.organizationId, t.cantonId],
+      foreignColumns: [
+        organizationCantons.organizationId,
+        organizationCantons.cantonId,
+      ],
+    }),
+    check("registration_role", sql`${t.role} IN ('admin','member')`),
+    check(
+      "registration_modules",
+      sql`${t.modules} <@ ARRAY['district','organigrama','centros','A01','A02','A03','A04','A05','A06','A07','A08','A09']::text[]`,
+    ),
+  ],
+);
+export const authAttempts = electoral.table("auth_attempts", {
+  key: text("key").primaryKey(),
+  windowStarted: timestamp("window_started", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  attempts: integer("attempts").notNull().default(1),
+});
+
+export const userPeople = electoral.table(
+  "user_people",
+  {
+    organizationId: uuid("organization_id").notNull(),
+    userId: uuid("user_id").notNull(),
+    personId: uuid("person_id").notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.organizationId, t.userId] }),
+    unique("user_person_unique").on(t.organizationId, t.personId),
+    foreignKey({
+      name: "user_person_membership_fk",
+      columns: [t.organizationId, t.userId],
+      foreignColumns: [memberships.organizationId, memberships.userId],
+    }),
+    foreignKey({
+      name: "user_person_person_fk",
+      columns: [t.personId, t.organizationId],
+      foreignColumns: [people.id, people.organizationId],
+    }),
+  ],
+);

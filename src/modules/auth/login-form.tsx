@@ -8,14 +8,16 @@ export function LoginForm({ configured }: { configured: boolean }) {
   return (
     <form action={action} className="space-y-5">
       <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-medium">
-          Correo electrónico
+        <label htmlFor="identifier" className="mb-2 block text-sm font-medium">
+          Cédula o correo
         </label>
         <Input
-          id="email"
-          name="email"
-          type="email"
+          id="identifier"
+          name="identifier"
+          type="text"
           autoComplete="username"
+          placeholder="Tu cédula o correo"
+          className="h-11"
           required
           maxLength={254}
           disabled={!configured}
@@ -30,6 +32,7 @@ export function LoginForm({ configured }: { configured: boolean }) {
           name="password"
           type="password"
           autoComplete="current-password"
+          className="h-11"
           required
           maxLength={256}
           disabled={!configured}
@@ -40,7 +43,7 @@ export function LoginForm({ configured }: { configured: boolean }) {
           {state.error}
         </p>
       )}
-      <Button className="w-full" disabled={!configured || pending}>
+      <Button className="h-11 w-full" disabled={!configured || pending}>
         {pending ? "Ingresando…" : "Ingresar al espacio"}
       </Button>
     </form>

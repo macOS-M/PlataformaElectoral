@@ -11,6 +11,8 @@ vi.mock("@/server/db/client", () => ({ getDb: () => drizzle(db) }));
 const db = new PGlite();
 const organization = "10000000-0000-4000-8000-000000000001";
 const scope = {
+  role: "admin" as const,
+  editableModules: [],
   userId: "80000000-0000-4000-8000-000000000001",
   organizationId: organization,
   cantonId: "20000000-0000-4000-8000-000000000001",
@@ -22,7 +24,7 @@ const scope = {
 };
 beforeAll(async () => {
   await db.exec(
-    "CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY); CREATE ROLE anon; CREATE ROLE authenticated;",
+    "CREATE SCHEMA auth; CREATE TABLE auth.users (id uuid PRIMARY KEY, email text, raw_app_meta_data jsonb, raw_user_meta_data jsonb, deleted_at timestamptz, banned_until timestamptz); CREATE ROLE anon; CREATE ROLE authenticated;",
   );
   await migrate(drizzle(db), { migrationsFolder: "src/server/db/migrations" });
   await db.exec(await readFile("src/server/db/seeds/demo.sql", "utf8"));

@@ -8,14 +8,25 @@ const links = [
   { href: "/organigrama", label: "Organigrama", icon: Network },
   { href: "/centros", label: "Centros de votación", icon: School },
 ];
-export function Navigation() {
+export function Navigation({ admin = false }: { admin?: boolean }) {
   const pathname = usePathname();
   return (
     <nav
       aria-label="Navegación principal"
       className="grid grid-cols-3 gap-2 p-3 lg:flex lg:flex-col lg:p-5"
     >
-      {links.map(({ href, label, icon: Icon }) => (
+      {[
+        ...links,
+        ...(admin
+          ? [
+              {
+                href: "/administracion/usuarios",
+                label: "Usuarios y accesos",
+                icon: Network,
+              },
+            ]
+          : []),
+      ].map(({ href, label, icon: Icon }) => (
         <Link
           key={href}
           href={href}
@@ -49,7 +60,10 @@ export function Breadcrumb() {
         Espacio de trabajo <span className="mx-3 text-border">/</span>
       </span>
       <span className="font-medium text-foreground">
-        {links.find((x) => x.href === pathname)?.label ?? "Plataforma cantonal"}
+        {(pathname === "/administracion/usuarios"
+          ? "Usuarios y accesos"
+          : links.find((x) => x.href === pathname)?.label) ??
+          "Plataforma TBA"}
       </span>
     </div>
   );

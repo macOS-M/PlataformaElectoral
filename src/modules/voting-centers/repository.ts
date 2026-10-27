@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq, ilike, or, asc, count, isNull } from "drizzle-orm";
+import { and, eq, ilike, or, asc, count, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/server/db/client";
 import { centerElections, votingCenters, districts } from "@/server/db/schema";
 import type { AccessContext } from "@/server/authorization/context";
@@ -43,6 +43,7 @@ export async function readCenters(
       code: centerElections.tseCode,
       status: centerElections.internalStatus,
       source: centerElections.dataSource,
+      sourceReference: centerElections.sourceReference,
       boards: centerElections.reportedBoardCount,
     })
     .from(centerElections)
@@ -53,4 +54,8 @@ export async function readCenters(
     .limit(PAGE_SIZE)
     .offset((page - 1) * PAGE_SIZE);
   return { rows, total: total.value, totalPages, page };
+}
+
+export async function createCenter(scope: AccessContext, input: { name: string; address: string; districtId: string }) {
+  await getDb().execute(sql`select electoral.create_center(${scope.userId}::uuid, ${scope.organizationId}::uuid, ${scope.cantonId}::uuid, ${scope.eventId}::uuid, ${input.districtId}::uuid, ${input.name}, ${input.address})`);
 }
