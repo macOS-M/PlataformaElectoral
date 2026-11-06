@@ -1,12 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Network, School, ArrowUpRight } from "lucide-react";
+import { LayoutDashboard, Network, School, ArrowUpRight, Bus, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 const links = [
   { href: "/resumen", label: "Resumen general", icon: LayoutDashboard },
   { href: "/organigrama", label: "Organigrama", icon: Network },
   { href: "/centros", label: "Centros de votación", icon: School },
+  { href: "/transporte", label: "Transporte", icon: Bus },
+  { href: "/capacitacion", label: "Capacitación", icon: GraduationCap },
 ];
 export function Navigation({ admin = false }: { admin?: boolean }) {
   const pathname = usePathname();
@@ -35,7 +37,7 @@ export function Navigation({ admin = false }: { admin?: boolean }) {
             "flex min-w-0 flex-col items-center gap-2 rounded-lg px-2 py-3 text-center text-xs font-medium transition-colors lg:flex-row lg:gap-3 lg:px-4 lg:text-left lg:text-sm",
             pathname === href
               ? "bg-white/12 text-white ring-1 ring-white/15"
-              : "text-emerald-100/65 hover:bg-white/5 hover:text-white",
+              : "text-violet-100/65 hover:bg-white/5 hover:text-white",
           )}
         >
           <Icon size={18} aria-hidden="true" />
@@ -63,7 +65,7 @@ export function Breadcrumb() {
         {(pathname === "/administracion/usuarios"
           ? "Usuarios y accesos"
           : links.find((x) => x.href === pathname)?.label) ??
-          "Plataforma TBA"}
+          "Plataforma SIPEC"}
       </span>
     </div>
   );

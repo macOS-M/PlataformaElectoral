@@ -1,5 +1,6 @@
+import { BrandLogo } from "@/components/brand-logo";
 import Link from "next/link";
-import { Compass, LogOut, ShieldCheck, MapPin } from "lucide-react";
+import { LogOut, ShieldCheck, MapPin } from "lucide-react";
 import { Navigation, Breadcrumb } from "./navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,18 +26,10 @@ export function AppShell({
           href="/resumen"
           className="flex items-center gap-3 px-7 pt-7 pb-5"
         >
-          <span className="flex size-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
-            <Compass size={25} aria-hidden="true" />
-          </span>
-          <span className="text-lg font-semibold tracking-tight">
-            TBA
-            <span className="mt-0.5 block text-[10px] font-medium tracking-[0.18em] text-emerald-100/60">
-              PLATAFORMA ELECTORAL
-            </span>
-          </span>
+          <BrandLogo inverse className="w-[196px]" />
         </Link>
         <div className="mx-6 mt-4 hidden rounded-lg border border-white/10 bg-white/5 p-3 lg:block">
-          <p className="text-[10px] tracking-widest text-emerald-100/50">
+          <p className="text-[10px] tracking-widest text-violet-100/50">
             ÁMBITO TERRITORIAL
           </p>
           <p className="mt-2 flex items-center gap-2 text-sm">
@@ -44,20 +37,20 @@ export function AppShell({
             {scope?.cantonName ?? "Cantón por configurar"}
           </p>
         </div>
-        <p className="mt-8 px-8 text-[10px] font-semibold tracking-[0.18em] text-emerald-100/40 max-lg:hidden">
+        <p className="mt-8 px-8 text-[10px] font-semibold tracking-[0.18em] text-violet-100/40 max-lg:hidden">
           GESTIÓN CANTONAL
         </p>
         <Navigation admin={scope?.role === "admin"} />
         <div className="mt-auto hidden p-6 lg:block">
           <div className="rounded-xl border border-white/10 p-4">
-            <ShieldCheck className="mb-3 text-emerald-300" size={20} />
+            <ShieldCheck className="mb-3 text-violet-300" size={20} />
             <p className="text-sm font-medium">Información responsable</p>
-            <p className="mt-2 text-xs leading-relaxed text-emerald-100/55">
+            <p className="mt-2 text-xs leading-relaxed text-violet-100/55">
               Herramienta de coordinación interna. No sustituye registros ni
               acreditaciones del TSE.
             </p>
           </div>
-          <p className="mt-5 text-[11px] text-emerald-100/40">
+          <p className="mt-5 text-[11px] text-violet-100/40">
             Sprint 1 · Base organizacional
           </p>
         </div>
@@ -115,7 +108,7 @@ export function AppShell({
           ) : null}
           {children}
           <footer className="flex flex-wrap justify-between gap-2 border-t pt-5 text-xs text-muted-foreground">
-            <span>Plataforma Electoral TBA</span>
+            <span>SIPEC · Sistema Integral Político-Electoral Cantonal</span>
             <span>Organización y territorio · Costa Rica</span>
           </footer>
         </main>

@@ -1,14 +1,14 @@
 @import "tailwindcss";
 :root {
-  --background: #f5f7f6;
-  --foreground: #1d302c;
+  --background: #f6f4fc;
+  --foreground: #16132b;
   --card: #fff;
-  --card-foreground: #1d302c;
-  --primary: #17634f;
+  --card-foreground: #16132b;
+  --primary: #5b3cf0;
   --primary-foreground: #fff;
-  --muted: #eff3f1;
-  --muted-foreground: #63746e;
-  --border: #dfe7e2;
+  --muted: #ece8ff;
+  --muted-foreground: #625d78;
+  --border: #ded9ee;
   --radius: 0.75rem;
 }
 @theme inline {
@@ -21,7 +21,7 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --font-sans: Arial, Helvetica, sans-serif;
+  --font-sans: var(--font-poppins), Arial, Helvetica, sans-serif;
   --radius-lg: var(--radius);
 }
 @layer base {
@@ -31,7 +31,7 @@
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
   }
   button,
   a,
@@ -46,8 +46,8 @@
   }
 }
 .sidebar {
-  background-color: #102e27;
-  background-image: linear-gradient(165deg, #163e33 0%, #102e27 100%);
+  background-color: #16132b;
+  background-image: linear-gradient(165deg, #292044 0%, #16132b 100%);
 }
 .hero-grid {
   background-image:
@@ -59,7 +59,7 @@
   background-image:
     linear-gradient(#ffffff07 1px, transparent 1px),
     linear-gradient(90deg, #ffffff07 1px, transparent 1px),
-    linear-gradient(165deg, #163e33 0%, #102e27 100%);
+    linear-gradient(165deg, #292044 0%, #16132b 100%);
   background-size:
     28px 28px,
     28px 28px,

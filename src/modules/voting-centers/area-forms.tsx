@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 type Person = { id: string; fullName: string; email: string | null; phone: string | null; notes: string | null; version: string };
 const empty = { error: "", success: "" };
 function Message({ state }: { state: typeof empty }) {
-  return <>{state.error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{state.error}</p>}{state.success && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">{state.success}</p>}</>;
+  return <>{state.error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{state.error}</p>}{state.success && <p role="status" className="rounded-lg bg-violet-50 p-3 text-sm text-violet-900">{state.success}</p>}</>;
 }
 export function ResponsibleForm({ centerId, areaCode, expectedId, currentPersonId, directory }: { centerId: string; areaCode: string; expectedId: string; currentPersonId: string; directory: Person[] }) {
   const [state, action, pending] = useActionState(saveResponsibleAction, empty);
