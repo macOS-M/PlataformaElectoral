@@ -54,8 +54,8 @@ export default async function Dashboard() {
         title="Resumen general"
         description="Una visión compartida de la organización y su territorio. Empieza por conocer la estructura y los centros del cantón."
       />
-      <section className="hero-grid relative overflow-hidden rounded-xl bg-[#1a493b] p-7 text-white sm:p-8">
-        <p className="text-xs font-medium tracking-widest text-emerald-200">
+      <section className="hero-grid relative overflow-hidden rounded-xl bg-primary p-7 text-white sm:p-8">
+        <p className="text-xs font-medium tracking-widest text-violet-200">
           ORGANIZACIÓN QUE CONECTA
         </p>
         <h2 className="mt-3 max-w-lg text-2xl font-medium leading-tight">
@@ -63,20 +63,20 @@ export default async function Dashboard() {
           <br />
           en el lugar correcto.
         </h2>
-        <p className="mt-3 max-w-lg text-sm leading-relaxed text-emerald-100/70">
+        <p className="mt-3 max-w-lg text-sm leading-relaxed text-violet-100/70">
           Consulta la estructura cantonal y los centros de votación desde un
           mismo espacio de trabajo.
         </p>
         <Button
           asChild
-          className="mt-5 bg-white text-[#174b3b] hover:bg-emerald-50"
+          className="mt-5 bg-white text-primary hover:bg-violet-50"
         >
           <Link href="/organigrama">
             Ver organigrama <ArrowRight size={16} />
           </Link>
         </Button>
         <Network
-          className="absolute right-12 top-10 hidden size-36 text-emerald-100/15 xl:block"
+          className="absolute right-12 top-10 hidden size-36 text-violet-100/15 xl:block"
           strokeWidth={0.8}
           aria-hidden="true"
         />

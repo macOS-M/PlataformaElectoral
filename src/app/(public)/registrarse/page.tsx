@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand-logo";
 import Link from "next/link";
 import { nameLookupConfigured } from "@/modules/access/name-lookup";
 import { getConfiguration } from "@/server/config";
@@ -9,8 +10,9 @@ export default function Register() {
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 p-6">
       <div>
+        <BrandLogo className="mb-4" />
         <p className="text-xs font-semibold tracking-widest text-primary">
-          TBA · ACCESO AUTORIZADO
+          SIPEC · ACCESO AUTORIZADO
         </p>
         <h1 className="mt-3 text-3xl font-semibold">Crear mi cuenta</h1>
         <p className="mt-3 text-sm text-muted-foreground">

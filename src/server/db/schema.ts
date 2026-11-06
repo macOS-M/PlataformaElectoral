@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   pgSchema,
+  pgPolicy,
   uuid,
   text,
   boolean,
@@ -263,6 +264,7 @@ export const assignments = electoral.table(
       sql`(${t.endedAt} IS NULL AND ${t.endedReason} IS NULL) OR (${t.endedAt} IS NOT NULL AND length(trim(${t.endedReason})) BETWEEN 3 AND 500)`,
     ),
     index("assignment_person_idx").on(t.organizationId, t.personId),
+    unique("assignment_training_scope").on(t.id, t.organizationId, t.cantonId, t.positionId),
   ],
 );
 
@@ -543,3 +545,65 @@ export const userPeople = electoral.table(
     }),
   ],
 );
+
+export const vehicles = electoral.table("vehicles", {
+  id: id(), organizationId: uuid("organization_id").notNull(), cantonId: uuid("canton_id").notNull(),
+  plate: text("plate").notNull(), description: text("description").notNull(),
+  responsibleId: uuid("responsible_id").notNull(), active: boolean("active").notNull().default(true),
+  version: integer("version").notNull().default(1), ...timestamps(),
+}, t => [
+  unique().on(t.id, t.organizationId, t.cantonId), unique().on(t.organizationId, t.plate),
+  foreignKey({ columns: [t.organizationId, t.cantonId], foreignColumns: [organizationCantons.organizationId, organizationCantons.cantonId] }),
+  foreignKey({ columns: [t.responsibleId, t.organizationId], foreignColumns: [people.id, people.organizationId] }),
+  check("vehicle_text", sql`${t.plate} ~ '^[A-Z0-9-]{2,20}$' AND length(trim(${t.description})) BETWEEN 2 AND 160 AND ${t.version} > 0`),
+  pgPolicy("vehicles_server_read", { for: "select", to: "electoral_app", using: sql`true` }),
+]).enableRLS();
+export const vehicleDistricts = electoral.table("vehicle_district_assignments", {
+  id: id(), vehicleId: uuid("vehicle_id").notNull(), organizationId: uuid("organization_id").notNull(),
+  cantonId: uuid("canton_id").notNull(), eventId: uuid("event_id").notNull(), districtId: uuid("district_id").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(), endedAt: timestamp("ended_at", { withTimezone: true }),
+}, t => [
+  foreignKey({ columns: [t.vehicleId, t.organizationId, t.cantonId], foreignColumns: [vehicles.id, vehicles.organizationId, vehicles.cantonId] }),
+  foreignKey({ columns: [t.districtId, t.cantonId], foreignColumns: [districts.id, districts.cantonId] }),
+  foreignKey({ columns: [t.eventId, t.organizationId], foreignColumns: [electionEvents.id, electionEvents.organizationId] }),
+  uniqueIndex("vehicle_district_current").on(t.vehicleId, t.eventId, t.districtId).where(sql`${t.endedAt} IS NULL`),
+  check("vehicle_district_dates", sql`${t.endedAt} IS NULL OR ${t.endedAt} >= ${t.startedAt}`),
+  pgPolicy("vehicle_districts_server_read", { for: "select", to: "electoral_app", using: sql`true` }),
+]).enableRLS();
+export const vehicleCenters = electoral.table("vehicle_center_assignments", {
+  id: id(), vehicleId: uuid("vehicle_id").notNull(), organizationId: uuid("organization_id").notNull(),
+  cantonId: uuid("canton_id").notNull(), eventId: uuid("event_id").notNull(), centerElectionId: uuid("center_election_id").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(), endedAt: timestamp("ended_at", { withTimezone: true }),
+}, t => [
+  foreignKey({ columns: [t.vehicleId, t.organizationId, t.cantonId], foreignColumns: [vehicles.id, vehicles.organizationId, vehicles.cantonId] }),
+  foreignKey({ columns: [t.centerElectionId, t.organizationId, t.eventId], foreignColumns: [centerElections.id, centerElections.organizationId, centerElections.eventId] }),
+  uniqueIndex("vehicle_center_current").on(t.vehicleId, t.eventId, t.centerElectionId).where(sql`${t.endedAt} IS NULL`),
+  check("vehicle_center_dates", sql`${t.endedAt} IS NULL OR ${t.endedAt} >= ${t.startedAt}`),
+  pgPolicy("vehicle_centers_server_read", { for: "select", to: "electoral_app", using: sql`true` }),
+]).enableRLS();
+export const trainingRequirements = electoral.table("training_requirements", {
+  id: id(), organizationId: uuid("organization_id").notNull(), cantonId: uuid("canton_id").notNull(), eventId: uuid("event_id").notNull(),
+  positionId: uuid("position_id").notNull(), required: boolean("required").notNull(), scheduledOn: date("scheduled_on"),
+  revision: integer("revision").notNull(), createdBy: uuid("created_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => [
+  foreignKey({ columns: [t.positionId, t.organizationId, t.cantonId], foreignColumns: [positions.id, positions.organizationId, positions.cantonId] }),
+  foreignKey({ columns: [t.eventId, t.organizationId], foreignColumns: [electionEvents.id, electionEvents.organizationId] }),
+  unique().on(t.positionId, t.eventId, t.revision),
+  unique("training_requirement_scope").on(t.id, t.organizationId, t.cantonId, t.eventId, t.positionId),
+  check("training_requirement_revision", sql`${t.revision} > 0 AND (${t.required} OR ${t.scheduledOn} IS NULL)`),
+  pgPolicy("training_requirements_server_read", { for: "select", to: "electoral_app", using: sql`true` }),
+]).enableRLS();
+export const trainingProgress = electoral.table("training_progress", {
+  id: id(), requirementId: uuid("requirement_id").notNull(), assignmentId: uuid("assignment_id").notNull(),
+  organizationId: uuid("organization_id").notNull(), cantonId: uuid("canton_id").notNull(), eventId: uuid("event_id").notNull(), positionId: uuid("position_id").notNull(),
+  status: text("status", { enum: ["pendiente", "convocado", "cumplido", "no_asistio"] }).notNull(),
+  statusOn: date("status_on").notNull(), sequence: integer("sequence").notNull(), createdBy: uuid("created_by").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => [
+  foreignKey({ columns: [t.requirementId, t.organizationId, t.cantonId, t.eventId, t.positionId], foreignColumns: [trainingRequirements.id, trainingRequirements.organizationId, trainingRequirements.cantonId, trainingRequirements.eventId, trainingRequirements.positionId] }),
+  foreignKey({ columns: [t.assignmentId, t.organizationId, t.cantonId, t.positionId], foreignColumns: [assignments.id, assignments.organizationId, assignments.cantonId, assignments.positionId] }),
+  unique().on(t.requirementId, t.assignmentId, t.sequence),
+  check("training_progress_status", sql`${t.status} IN ('pendiente','convocado','cumplido','no_asistio') AND ${t.sequence} > 0`),
+  pgPolicy("training_progress_server_read", { for: "select", to: "electoral_app", using: sql`true` }),
+]).enableRLS();

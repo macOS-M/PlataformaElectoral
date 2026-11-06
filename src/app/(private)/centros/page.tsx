@@ -40,7 +40,7 @@ export default async function Centers({
         </Badge>
         </div>
       </PageHeading>
-      {params.created === "1" && <p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-900">Centro registrado. Está pendiente de verificar.</p>}
+      {params.created === "1" && <p role="status" className="rounded-lg bg-violet-50 p-3 text-sm text-violet-900">Centro registrado. Está pendiente de verificar.</p>}
       <Card>
         <form
           className="grid items-end gap-4 border-b p-5 sm:grid-cols-2 xl:grid-cols-[1.5fr_1fr_1fr_auto]"

@@ -64,6 +64,20 @@
       "when": 1792999021530,
       "tag": "0008_colorful_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793742755915,
+      "tag": "0009_tan_gladiator",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793780345447,
+      "tag": "0010_spicy_susan_delgado",
+      "breakpoints": true
     }
   ]
 }

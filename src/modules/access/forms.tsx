@@ -22,7 +22,7 @@ function Status({ state }: { state: AccessState }) {
         </p>
       )}
       {state.success && (
-        <p className="text-sm text-emerald-700">{state.success}</p>
+        <p className="text-sm text-violet-700">{state.success}</p>
       )}
       {state.code && (
         <p

@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getConfiguration } from "@/server/config";
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
+  if (request.nextUrl.pathname === "/") return response;
   const config = getConfiguration();
   if (!config) return response;
   const url = config.NEXT_PUBLIC_SUPABASE_URL;
