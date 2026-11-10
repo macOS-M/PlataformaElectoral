@@ -1,0 +1,7 @@
+import { createRoot } from "react-dom/client";
+import { VehicleDocumentForm } from "../../src/modules/transport/document-form";
+declare global{interface Window{__vehicleDocumentSubmissions:Record<string,string>[];__vehicleDocumentReject:boolean;__vehicleDocumentSave:(form:FormData)=>Promise<{error:string;success:string}>}}
+window.__vehicleDocumentSubmissions=[];window.__vehicleDocumentReject=false;
+window.__vehicleDocumentSave=async form=>{const payload=Object.fromEntries([...form].map(([key,value])=>[key,String(value)]));payload.files=JSON.stringify(form.getAll("documents").filter((f):f is File=>f instanceof File).map(f=>f.name));window.__vehicleDocumentSubmissions.push(payload);return window.__vehicleDocumentReject?{error:"Rechazo sintético. Conservamos los archivos.",success:""}:{error:"",success:"Documentos guardados de forma privada."};};
+const id=(n:number)=>`10000000-0000-4000-8000-${String(n).padStart(12,"0")}`;
+createRoot(document.getElementById("root")!).render(<main className="mx-auto max-w-3xl space-y-6 p-5"><h1 className="text-2xl font-semibold">TEST-01 · Conductor de prueba</h1><p className="text-sm text-muted-foreground">Conductor, vehículo y documentos</p><section className="rounded-2xl border bg-card p-5"><h2 className="mb-5 font-semibold">Adjuntar documentos privados de esta unidad</h2><VehicleDocumentForm vehicleId={id(1)} conductorId={id(2)} batchId={id(3)}/></section></main>);

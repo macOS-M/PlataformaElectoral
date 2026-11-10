@@ -34,6 +34,8 @@ export async function assignAction(
     return failure(error);
   }
   revalidatePath("/organigrama");
+  revalidatePath("/organigrama/cantonal");
+  revalidatePath("/capacitacion");
   revalidatePath("/resumen");
   return {
     error: "",

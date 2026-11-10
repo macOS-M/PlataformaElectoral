@@ -9,10 +9,12 @@ function failure(error: unknown): TrainingState {
 export async function saveRequirementAction(_state: TrainingState, form: FormData): Promise<TrainingState> {
   try { await updateRequirement({ ...Object.fromEntries(form), required: form.get("required") === "on" }); } catch (error) { return failure(error); }
   revalidatePath("/capacitacion");
+  revalidatePath("/centros","layout");
   return { error: "", success: "Requisito guardado; el historial se conservó." };
 }
 export async function saveProgressAction(_state: TrainingState, form: FormData): Promise<TrainingState> {
   try { await updateProgress(Object.fromEntries(form)); } catch (error) { return failure(error); }
   revalidatePath("/capacitacion");
+  revalidatePath("/centros","layout");
   return { error: "", success: "Estado registrado. No se envió correo." };
 }

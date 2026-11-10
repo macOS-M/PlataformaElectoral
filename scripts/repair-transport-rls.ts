@@ -35,7 +35,7 @@ let stage = "prepare";
 async function main() {
   const migrations = readMigrationFiles({ migrationsFolder: "src/server/db/migrations" });
   const baseline = migrations[9], correction = migrations[10];
-  if (!baseline || !correction || migrations.length !== 11) throw new Error("Revisar plan de migraciones");
+  if (!baseline || !correction || migrations.length < 11) throw new Error("Revisar plan de migraciones");
   const reference = new PGlite();
   const { client } = administrativeDatabase();
   try {

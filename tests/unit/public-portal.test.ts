@@ -14,7 +14,7 @@ beforeEach(() => {
 });
 it("lee únicamente el ámbito configurado sin sustituirlo por parámetros públicos", async () => {
   const portal = await getPublicPortal({ canton, district });
-  expect(mocks.read).toHaveBeenCalledWith(other, canton);
+  expect(mocks.read).toHaveBeenCalledWith(other, canton, undefined);
   expect(portal.selection?.district.id).toBe(district);
   expect(portal.invalidSelection).toBe(false);
 });
@@ -25,7 +25,7 @@ it.each([
   const portal = await getPublicPortal(query);
   expect(portal.selection).toBeNull();
   expect(portal.invalidSelection).toBe(true);
-  expect(mocks.read).toHaveBeenCalledWith(other, canton);
+  expect(mocks.read).toHaveBeenCalledWith(other, canton, undefined);
 });
 it("no selecciona una zona automáticamente", async () => {
   expect((await getPublicPortal({})).selection).toBeNull();

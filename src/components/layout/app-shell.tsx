@@ -42,17 +42,6 @@ export function AppShell({
         </p>
         <Navigation admin={scope?.role === "admin"} />
         <div className="mt-auto hidden p-6 lg:block">
-          <div className="rounded-xl border border-white/10 p-4">
-            <ShieldCheck className="mb-3 text-violet-300" size={20} />
-            <p className="text-sm font-medium">Información responsable</p>
-            <p className="mt-2 text-xs leading-relaxed text-violet-100/55">
-              Herramienta de coordinación interna. No sustituye registros ni
-              acreditaciones del TSE.
-            </p>
-          </div>
-          <p className="mt-5 text-[11px] text-violet-100/40">
-            Sprint 1 · Base organizacional
-          </p>
         </div>
       </aside>
       <div className="min-w-0">

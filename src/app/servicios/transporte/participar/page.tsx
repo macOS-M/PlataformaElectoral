@@ -1,0 +1,6 @@
+import { getPublicTransport,getPublicTransportScope } from "@/modules/public-transport/service";
+import { PublicTransportShell } from "@/modules/public-transport/public-shell";
+import { PublicTransportForm } from "@/modules/public-transport/public-ui";
+export const dynamic="force-dynamic";
+export const metadata={title:"Interés como transportista"};
+export default async function DriverInterestPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}){const data=await getPublicTransport(await searchParams);return <PublicTransportShell title="Apoyá como transportista" description="Inscribí tu vehículo junto con tus datos de conductor, zona y contacto. El vehículo es obligatorio. La solicitud queda pendiente de revisión, sin alta automática en logística."><section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-7">{data.invalidFilters&&<p role="alert" className="text-sm text-amber-900">La zona recibida no está disponible. Elegí una zona válida en el formulario.</p>}{data.ready&&data.canSubmit&&data.districts.length?<PublicTransportForm key={data.district} kind="driver" districts={data.districts} centers={data.centers} initialDistrict={data.district} cantonId={getPublicTransportScope()?.cantonId}/>:<p role="status">La inscripción aún no está disponible. No se recibió ninguna solicitud.</p>}</section></PublicTransportShell>;}

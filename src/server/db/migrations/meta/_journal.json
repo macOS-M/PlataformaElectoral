@@ -78,6 +78,62 @@
       "when": 1793780345447,
       "tag": "0010_spicy_susan_delgado",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793988053978,
+      "tag": "0011_inventory",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794111757723,
+      "tag": "0012_territorial_hierarchy",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794160651316,
+      "tag": "0013_public_transport",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794211359824,
+      "tag": "0014_center_organization_training",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1794212184864,
+      "tag": "0015_center_fiscals_jrv",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794213636544,
+      "tag": "0016_inventory_receipts",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794220634294,
+      "tag": "0017_vehicle_documents_driver_required",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794265241556,
+      "tag": "0018_vehicle_registration_documents",
+      "breakpoints": true
     }
   ]
 }

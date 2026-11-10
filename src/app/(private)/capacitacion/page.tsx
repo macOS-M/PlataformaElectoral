@@ -1,26 +1,19 @@
 import { PageHeading } from "@/components/page-heading";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getTraining } from "@/modules/training/service";
-import { RequirementForm, ProgressForm } from "@/modules/training/forms";
+import { getTraining,getCenterTraining } from "@/modules/training/service";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { CenterPicker } from "@/modules/organization/center-picker";
+import { TrainingWorkspace } from "@/modules/training/workspace";
 export const metadata = { title: "Capacitación" };
-const labels: Record<string, string> = { pendiente: "Pendiente", convocado: "Convocado", cumplido: "Cumplido", no_asistio: "No asistió" };
-export default async function TrainingPage() {
-  const data = await getTraining();
+export default async function TrainingPage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
+  const query=await searchParams;if(Array.isArray(query.center))notFound();
+  if(!query.center&&query.scope!=="cantonal")return <CenterPicker query={query} purpose="training"/>;
+  const centerData=query.center?await getCenterTraining(query.center):null;
+  const data = centerData??await getTraining();
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Costa_Rica", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   return <>
-    <PageHeading eyebrow="Preparación del equipo" title="Capacitación por puesto" description="Requisitos, fechas y cumplimiento de los ocupantes del organigrama para el evento actual." />
-    <p className="text-sm text-muted-foreground">Solo los administradores gestionan capacitación. Las convocatorias son internas; no se envían notificaciones por correo en este incremento.</p>
-    <Card><CardHeader><CardTitle>Puestos ({data.rows.length})</CardTitle></CardHeader><CardContent className="space-y-4">
-      {!data.rows.length && <p className="text-sm">No hay puestos disponibles.</p>}
-      {data.rows.map(row => <details key={`${row.positionId}-${row.requirementId}-${row.progressId}-${row.assignmentId}`} className="rounded-lg border p-4">
-        <summary className="cursor-pointer text-sm font-semibold">{row.name} · {row.required === null ? "Sin configurar" : !row.required ? "No requerido" : labels[row.status ?? "pendiente"]}</summary>
-        <div className="mt-4 space-y-4">
-          <p className="text-sm">Ocupante: {row.personName ?? "Vacante"} · Fecha programada: {row.scheduledOn ?? "Sin fecha"}{row.statusOn ? ` · Fecha de estado: ${row.statusOn}` : ""}</p>
-          {data.canEdit && <RequirementForm row={row} />}
-          {data.canEdit && row.required && row.assignmentId && <ProgressForm row={row} />}
-          {row.required && !row.assignmentId && <p className="text-sm text-muted-foreground">Asigna un ocupante desde el organigrama antes de registrar su cumplimiento.</p>}
-        </div>
-      </details>)}
-    </CardContent></Card>
-    {!!data.history.length && <Card><CardHeader><CardTitle>Historial de requisitos y estados</CardTitle></CardHeader><CardContent><ul className="space-y-3 text-sm">{data.history.map((h, i) => <li key={i}>{h.positionName} · Revisión {h.revision} · {h.required ? "Requerido" : "No requerido"} · Programada: {h.scheduledOn ?? "Sin fecha"}<span className="block text-xs text-muted-foreground">{h.personName ?? "Sin registro de ocupante"} · {h.status ? labels[h.status] : "Sin estados registrados"} {h.statusOn ?? ""}</span></li>)}</ul></CardContent></Card>}
+    <PageHeading eyebrow={centerData?centerData.center.name:"Preparación del equipo cantonal"} title="Capacitación por puesto" description="Organizá los requisitos y acompañá el avance de tu equipo, desde la convocatoria hasta la asistencia." />
+    <Link href={query.center?`/centros/${query.center}/organigrama`:"/organigrama"} className="text-sm text-primary">{query.center?"← Volver al organigrama de este centro":"Elegir un centro y gestionar la capacitación de su equipo →"}</Link>
+    {"unavailable" in data&&data.unavailable?<p role="status">La capacitación por centro requiere activar la migración 0014. Los encargados existentes se conservan.</p>:<TrainingWorkspace {...data} today={today} />}
   </>;
 }
