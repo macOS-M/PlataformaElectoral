@@ -7,7 +7,7 @@ import type { z } from "zod";
 import type { responsibleSchema } from "./area-schemas";
 
 export async function readCenter(scope: AccessContext, id: string) {
-  const [center] = await getDb().select({ id: centerElections.id, name: votingCenters.name, address: votingCenters.address, district: districts.name, status: centerElections.internalStatus })
+  const [center] = await getDb().select({ id: centerElections.id, name: votingCenters.name, address: votingCenters.address, district: districts.name, districtId:districts.id, status: centerElections.internalStatus })
     .from(centerElections).innerJoin(votingCenters, eq(votingCenters.id, centerElections.centerId)).innerJoin(districts, eq(districts.id, centerElections.districtId))
     .where(and(eq(centerElections.id, id), eq(centerElections.organizationId, scope.organizationId), eq(centerElections.cantonId, scope.cantonId), eq(centerElections.eventId, scope.eventId), isNull(votingCenters.archivedAt))).limit(1);
   return center ?? null;

@@ -49,10 +49,10 @@ test("navega entre las dos pantallas sin datos ficticios implícitos", async ({
     .getByRole("link", { name: "Organigrama", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Organigrama cantonal", exact: true }),
+    page.getByRole("heading", { name: "Organigramas por centro", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "La estructura está por comenzar" }),
+    page.getByText("No hay centros disponibles con estos filtros.", { exact: true }),
   ).toBeVisible();
   await page
     .getByRole("navigation", { name: "Navegación principal" })
@@ -136,8 +136,8 @@ test("transporte y capacitación sin conexión no ofrecen mutaciones", async ({ 
   await expect(page.getByText("No hay vehículos registrados.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Registrar vehículo" })).toHaveCount(0);
   await page.getByRole("navigation", { name: "Navegación principal" }).getByRole("link", { name: "Capacitación", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Capacitación por puesto" })).toBeVisible();
-  await expect(page.getByText("No hay puestos disponibles.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Capacitación por centro" })).toBeVisible();
+  await expect(page.getByText("No hay centros disponibles con estos filtros.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Guardar requisito" })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
@@ -149,4 +149,15 @@ test("recuperación sin configuración no envía correos ni acepta contraseñas"
   await expect(page.getByRole("button", { name: "Enviar enlace de recuperación" })).toBeDisabled();
   await page.goto("/restablecer-contrasena");
   await expect(page.getByRole("button", { name: "Guardar nueva contraseña" })).toHaveCount(0);
+});
+
+test("inventario desconectado no expone existencias, escrituras ni exportación",async({page},testInfo)=>{
+ await page.goto("/inventario");
+ await expect(page.getByRole("heading",{name:"Inventario de signos externos",exact:true})).toBeVisible();
+ await expect(page.getByRole("status")).toContainText("El inventario aún no está conectado");
+ await expect(page.getByRole("button",{name:"Registrar movimiento",exact:true})).toHaveCount(0);
+ await expect(page.getByRole("link",{name:"Exportar CSV restringido"})).toHaveCount(0);
+ expect((await page.request.get("/inventario/exportar")).status()).toBe(403);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath("inventario.png"),fullPage:true});
 });

@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Network, School, ArrowUpRight, Bus, GraduationCap } from "lucide-react";
+import { LayoutDashboard, Network, School, ArrowUpRight, Bus, GraduationCap, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 const links = [
   { href: "/resumen", label: "Resumen general", icon: LayoutDashboard },
   { href: "/organigrama", label: "Organigrama", icon: Network },
   { href: "/centros", label: "Centros de votación", icon: School },
+  { href: "/inventario", label: "Inventario", icon: Package },
   { href: "/transporte", label: "Transporte", icon: Bus },
   { href: "/capacitacion", label: "Capacitación", icon: GraduationCap },
 ];

@@ -20,6 +20,9 @@ export async function saveResponsibleAction(_state: AreaFormState, form: FormDat
   if (input.data.expectedId && input.data.personId !== String(form.get("previousPersonId") ?? "") && input.data.reason.length < 3) return { error: "Indica el motivo del cambio de encargado.", success: "" };
   try { await saveAreaResponsible(scope, input.data); } catch (error) { return failure(error); }
   revalidatePath(`/centros/${input.data.centerId}`);
+  revalidatePath(`/centros/${input.data.centerId}/organigrama`);
+  revalidatePath("/organigrama");
+  revalidatePath("/capacitacion");
   revalidatePath(`/centros/${input.data.centerId}/areas/${input.data.areaCode}`);
   return { error: "", success: "Encargado guardado. No se creó ninguna cuenta de acceso." };
 }

@@ -1,0 +1,7 @@
+"use client";
+import { useId,useState } from "react";
+import { MAX_VEHICLE_DOCUMENTS,MAX_VEHICLE_DOCUMENT_BYTES,vehicleDocumentLabels } from "./document-policy";
+export function VehicleDocumentFields({categoryName="category",required=true}:{categoryName?:string;required?:boolean}){
+ const id=useId();const [names,setNames]=useState<string[]>([]);
+ return <div className="space-y-4"><label className="grid gap-2 text-sm font-medium">Tipo de documento<select name={categoryName} className="min-h-11 rounded-lg border bg-card px-3">{Object.entries(vehicleDocumentLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label><label className="grid gap-2 text-sm font-medium">Archivos del vehículo o conductor<input name="documents" type="file" multiple required={required} accept="application/pdf,image/jpeg,image/png" aria-describedby={`${id}-help`} className="min-h-11 w-full rounded-lg border bg-card p-3" onChange={event=>{const files=Array.from(event.target.files??[]);setNames(files.map(f=>f.name));event.target.setCustomValidity(files.length>MAX_VEHICLE_DOCUMENTS||files.reduce((n,f)=>n+f.size,0)>MAX_VEHICLE_DOCUMENT_BYTES?"Hasta 3 archivos y 5 MB en total.":"");}}/></label><p id={`${id}-help`} className="text-xs leading-relaxed text-muted-foreground">Hasta 3 PDF, JPG o PNG por envío, con un máximo combinado de 5 MB. Los documentos son privados.</p>{!!names.length&&<ul className="space-y-1 text-xs text-muted-foreground">{names.map((name,i)=><li className="break-all" key={i}>{name}</li>)}</ul>}</div>;
+}

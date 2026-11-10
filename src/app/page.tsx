@@ -1,90 +1,41 @@
 import { BrandLogo } from "@/components/brand-logo";
 import Link from "next/link";
-import { ArrowRight, Bus, MapPin, MessageSquare } from "lucide-react";
+import { redirect } from "next/navigation";
+import { ArrowRight,ArrowUpRight,MapPin,ShieldCheck,Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getPublicPortal } from "@/modules/public-portal/service";
 import { TerritorySelector } from "@/modules/public-portal/territory-selector";
 import type { TerritoryQuery } from "@/modules/public-portal/types";
 
-export const metadata = {
-  title: "Información ciudadana",
-  description: "Información y servicios ciudadanos de SIPEC.",
-};
+export const metadata={title:"Información ciudadana",description:"Información y servicios ciudadanos de SIPEC."};
+export default async function Home({searchParams}:{searchParams:Promise<TerritoryQuery>}){
+ const portal=await getPublicPortal(await searchParams);
+ // Preserve saved links from the previous GET flow without keeping two results screens.
+ if(portal.selection){const query=new URLSearchParams({canton:portal.selection.canton.id,district:portal.selection.district.id});if(portal.selection.canton.province)query.set("province",portal.selection.canton.province.id);redirect(`/servicios?${query}`);}
+ return <div className="citizen-home flex min-h-svh flex-col">
+  <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:p-3">Saltar al contenido</a>
+  <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-5 py-5 sm:px-10"><Link href="/" className="flex items-center gap-2 text-xs font-semibold tracking-wide" aria-label="SIPEC · Inicio"><span className="size-2 rounded-full bg-primary"/>PORTAL CIUDADANO</Link><Button asChild variant="ghost" className="min-h-11 text-xs sm:text-sm"><Link href="/iniciar-sesion" prefetch={false}>Acceso interno <ArrowUpRight size={16} aria-hidden="true"/></Link></Button></header>
+  <main id="contenido" className="mx-auto w-full max-w-7xl flex-1 px-4 pb-6 sm:px-8">
+   <div className="citizen-stage overflow-hidden rounded-[2rem] border border-white bg-white shadow-[0_24px_80px_-40px_#29204450]">
+    <section className="citizen-brand relative isolate flex flex-col overflow-hidden px-7 py-8 text-white sm:px-12 sm:py-10" aria-labelledby="titulo-publico">
+     <svg className="citizen-route" viewBox="0 0 600 750" fill="none" aria-hidden="true"><path d="M600 75H380a100 100 0 0 0 0 200h20a100 100 0 0 1 0 200H220a100 100 0 0 0 0 200h380" stroke="currentColor" strokeWidth="60"/><circle cx="380" cy="75" r="17" fill="currentColor"/><circle cx="400" cy="475" r="17" fill="currentColor"/><circle cx="220" cy="675" r="17" fill="currentColor"/></svg>
+     <BrandLogo inverse className="relative -ml-4 w-[calc(100%+2rem)] max-w-[430px]"/>
+     <div className="relative mt-5 mb-8 lg:mt-10 lg:mb-12">
 
-export default async function Home({ searchParams }: { searchParams: Promise<TerritoryQuery> }) {
-  const portal = await getPublicPortal(await searchParams);
-  const selectionKey = portal.selection ? `${portal.selection.canton.id}/${portal.selection.district.id}` : "none";
-  return (
-    <div className="flex min-h-svh flex-col">
-      <a href="#contenido" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:p-3">
-        Saltar al contenido
-      </a>
-      <header className="border-b bg-card">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
-          <Link href="/" className="flex items-center gap-3 font-semibold text-primary" aria-label="SIPEC · Inicio">
-            <BrandLogo className="w-[150px] sm:w-[180px]" />
-          </Link>
-          <Button asChild variant="outline" className="min-h-11">
-            <Link href="/iniciar-sesion" prefetch={false}>Acceso interno <ArrowRight size={16} aria-hidden="true" /></Link>
-          </Button>
-        </div>
-      </header>
+      <h1 id="titulo-publico" className="max-w-lg text-[2rem] font-semibold leading-[1.14] tracking-[-0.045em] sm:text-5xl lg:text-[3.25rem]">Los servicios de tu <span className="text-[#c4b5fd]">cantón y distrito</span></h1>
 
-      <main id="contenido" className="mx-auto w-full max-w-6xl flex-1 space-y-6 px-4 py-6 sm:px-8 sm:py-10">
-        <section className="sidebar hero-grid rounded-2xl p-5 text-white sm:p-8" aria-labelledby="titulo-publico">
-          <p className="text-xs font-semibold tracking-widest text-violet-200">ESPACIO CIUDADANO · COSTA RICA</p>
-          <h1 id="titulo-publico" className="mt-3 text-2xl font-semibold leading-tight tracking-tight sm:text-4xl">Los servicios de tu cantón y distrito</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-violet-50 sm:text-base">Elegí tu cantón y distrito para conocer la información y los servicios disponibles en tu zona. No necesitás iniciar sesión.</p>
-        </section>
+     </div>
 
-        <section aria-labelledby="titulo-territorio">
-          <Card>
-            <CardHeader className="flex items-center gap-2">
-              <MapPin size={21} className="shrink-0 text-primary" aria-hidden="true" />
-              <CardTitle id="titulo-territorio">Seleccioná tu zona</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">Mostramos únicamente los cantones y distritos configurados en la plataforma.</p>
-              {portal.unavailable ? <p role="status" className="rounded-lg border bg-muted p-3 text-sm">El catálogo de cantones y distritos no está disponible en este momento. Podés consultar dónde votar en el sitio oficial del TSE.</p>
-                : !portal.territories.length && <p role="status" className="rounded-lg border bg-muted p-3 text-sm">Aún no hay cantones disponibles para seleccionar.</p>}
-              {portal.invalidSelection && <p role="alert" className="text-sm text-destructive">La zona seleccionada no está disponible. Elegí un cantón y un distrito del listado.</p>}
-              <TerritorySelector key={selectionKey} territories={portal.territories} selectedCanton={portal.selection?.canton.id} selectedDistrict={portal.selection?.district.id} />
-            </CardContent>
-          </Card>
-        </section>
-
-        {portal.selection && <section aria-labelledby="titulo-servicios" className="space-y-4">
-          <div>
-            <h2 id="titulo-servicios" className="text-xl font-semibold">Servicios en {portal.selection.district.name}, {portal.selection.canton.name}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Consultá el estado de cada servicio para tu zona.</p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <Card>
-              <CardHeader className="flex items-center gap-2"><MapPin size={20} className="shrink-0 text-primary" aria-hidden="true" /><CardTitle>Lugar de votación</CardTitle></CardHeader>
-              <CardContent className="text-sm leading-relaxed"><p className="font-medium text-primary">Disponible en el sitio oficial del TSE</p><p>La consulta se realiza directamente en el enlace oficial de abajo.</p></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex items-center gap-2"><Bus size={20} className="shrink-0 text-primary" aria-hidden="true" /><CardTitle>Opciones de transporte</CardTitle></CardHeader>
-              <CardContent className="text-sm leading-relaxed"><p className="font-medium">Pendiente de habilitación</p><p>La consulta pública de transporte aún no está habilitada.</p></CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex items-center gap-2"><MessageSquare size={20} className="shrink-0 text-primary" aria-hidden="true" /><CardTitle>Denuncias ciudadanas</CardTitle></CardHeader>
-              <CardContent className="text-sm leading-relaxed"><p className="font-medium">Pendiente de habilitación</p><p>La recepción de denuncias aún no está habilitada.</p></CardContent>
-            </Card>
-          </div>
-        </section>}
-
-        <section aria-labelledby="titulo-consulta" className="rounded-xl border bg-card p-4 sm:p-5">
-          <h2 id="titulo-consulta" className="font-semibold">¿Querés saber dónde votar?</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Consultá en el sitio oficial del Tribunal Supremo de Elecciones (TSE). No necesitás seleccionar una zona para acceder.</p>
-          <Button asChild className="mt-4 min-h-11 w-full sm:w-auto">
-            <a href="https://www.tse.go.cr/DondeVotar/" referrerPolicy="no-referrer">Consultar dónde votar en el TSE <ArrowRight size={16} aria-hidden="true" /></a>
-          </Button>
-          <p className="mt-3 text-xs leading-relaxed text-muted-foreground">Continuarás al sitio oficial del TSE. Esta plataforma no solicita ni guarda cédulas para esta consulta.</p>
-        </section>
-      </main>
-      <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">SIPEC · Sistema Integral Político-Electoral Cantonal · Costa Rica</footer>
-    </div>
-  );
+    </section>
+    <section aria-labelledby="titulo-territorio" className="citizen-zone flex flex-col px-6 py-8 sm:px-10 sm:py-10 lg:px-12">
+     <div className="mb-6 flex items-start justify-between gap-4"><div><h2 id="titulo-territorio" className="text-2xl font-semibold tracking-tight">Seleccioná tu zona</h2></div><span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-muted text-primary"><Compass size={23} aria-hidden="true"/></span></div>
+     <p className="mb-7 text-sm leading-relaxed text-muted-foreground">Elegí provincia, cantón y distrito para descubrir qué hay disponible para vos.</p>
+     {portal.unavailable?<p role="status" className="mb-5 rounded-lg border bg-muted p-3 text-sm">El catálogo de cantones y distritos no está disponible en este momento. Podés consultar dónde votar en el sitio oficial del TSE.</p>:!portal.territories.length&&<p role="status" className="mb-5 rounded-lg border bg-muted p-3 text-sm">Aún no hay cantones disponibles para seleccionar.</p>}
+     {portal.invalidSelection&&<p role="alert" className="mb-5 text-sm text-red-800">La zona seleccionada no está disponible. Elegí un cantón y un distrito del listado.</p>}
+     <TerritorySelector territories={portal.territories} action="/servicios" stacked/>
+     </section>
+   </div>
+   <section aria-labelledby="titulo-consulta" className="mt-5 flex flex-col gap-5 rounded-2xl border border-white bg-white/65 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8"><div><h2 id="titulo-consulta" className="text-sm font-semibold">¿Querés saber dónde votar?</h2><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Consultá directamente en el sitio oficial del TSE.</p></div><a className="inline-flex min-h-11 shrink-0 items-center justify-between gap-4 rounded-xl border bg-white px-4 text-xs font-semibold text-primary transition-colors hover:bg-muted" href="https://www.tse.go.cr/DondeVotar/" referrerPolicy="no-referrer">Consultar dónde votar en el TSE <ArrowRight size={16} aria-hidden="true"/></a></section>
+  </main><footer className="mx-auto flex w-full max-w-7xl flex-col gap-2 px-6 py-5 text-[10px] text-muted-foreground sm:flex-row sm:justify-between sm:px-10"><span>SIPEC · Sistema Integral Político-Electoral Cantonal</span><span>Costa Rica · Servicios ciudadanos</span></footer>
+ </div>;
 }

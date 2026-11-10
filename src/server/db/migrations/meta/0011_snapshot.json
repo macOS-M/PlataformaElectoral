@@ -1,0 +1,4095 @@
+{
+  "id": "0960d53b-f285-4d3c-9db2-3e2f1294a1e9",
+  "prevId": "7eb81294-1eb4-471b-83a8-77808b74c65d",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "electoral.organizational_assignments": {
+      "name": "organizational_assignments",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position_id": {
+          "name": "position_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ended_reason": {
+          "name": "ended_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "one_current_assignment": {
+          "name": "one_current_assignment",
+          "columns": [
+            {
+              "expression": "position_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"organizational_assignments\".\"ended_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "assignment_person_idx": {
+          "name": "assignment_person_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "person_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "assignment_position_scope_fk": {
+          "name": "assignment_position_scope_fk",
+          "tableFrom": "organizational_assignments",
+          "tableTo": "organizational_positions",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "position_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "assignment_person_scope_fk": {
+          "name": "assignment_person_scope_fk",
+          "tableFrom": "organizational_assignments",
+          "tableTo": "people",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "person_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "assignment_training_scope": {
+          "name": "assignment_training_scope",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "canton_id",
+            "position_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "assignment_dates": {
+          "name": "assignment_dates",
+          "value": "\"electoral\".\"organizational_assignments\".\"ended_at\" IS NULL OR \"electoral\".\"organizational_assignments\".\"ended_at\" >= \"electoral\".\"organizational_assignments\".\"started_at\""
+        },
+        "assignment_end_reason": {
+          "name": "assignment_end_reason",
+          "value": "(\"electoral\".\"organizational_assignments\".\"ended_at\" IS NULL AND \"electoral\".\"organizational_assignments\".\"ended_reason\" IS NULL) OR (\"electoral\".\"organizational_assignments\".\"ended_at\" IS NOT NULL AND length(trim(\"electoral\".\"organizational_assignments\".\"ended_reason\")) BETWEEN 3 AND 500)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.audit_logs": {
+      "name": "audit_logs",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_user_id": {
+          "name": "actor_user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entity": {
+          "name": "entity",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "before_json": {
+          "name": "before_json",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "after_json": {
+          "name": "after_json",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "audit_logs_organization_id_organizations_id_fk": {
+          "name": "audit_logs_organization_id_organizations_id_fk",
+          "tableFrom": "audit_logs",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.auth_attempts": {
+      "name": "auth_attempts",
+      "schema": "electoral",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "window_started": {
+          "name": "window_started",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "attempts": {
+          "name": "attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.cantons": {
+      "name": "cantons",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "province_code": {
+          "name": "province_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "official_code": {
+          "name": "official_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "cantons_official_code_unique": {
+          "name": "cantons_official_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "official_code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.center_area_assignments": {
+      "name": "center_area_assignments",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "center_election_id": {
+          "name": "center_election_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "area_id": {
+          "name": "area_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ended_reason": {
+          "name": "ended_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "center_area_current": {
+          "name": "center_area_current",
+          "columns": [
+            {
+              "expression": "center_election_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "area_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"center_area_assignments\".\"ended_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "center_area_assignments_center_election_id_organization_id_event_id_center_elections_id_organization_id_event_id_fk": {
+          "name": "center_area_assignments_center_election_id_organization_id_event_id_center_elections_id_organization_id_event_id_fk",
+          "tableFrom": "center_area_assignments",
+          "tableTo": "center_elections",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "center_election_id",
+            "organization_id",
+            "event_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "event_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "center_area_assignments_area_id_organization_id_functional_areas_id_organization_id_fk": {
+          "name": "center_area_assignments_area_id_organization_id_functional_areas_id_organization_id_fk",
+          "tableFrom": "center_area_assignments",
+          "tableTo": "functional_areas",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "area_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "center_area_assignments_person_id_organization_id_people_id_organization_id_fk": {
+          "name": "center_area_assignments_person_id_organization_id_people_id_organization_id_fk",
+          "tableFrom": "center_area_assignments",
+          "tableTo": "people",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "person_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "center_area_end": {
+          "name": "center_area_end",
+          "value": "(\"electoral\".\"center_area_assignments\".\"ended_at\" IS NULL AND \"electoral\".\"center_area_assignments\".\"ended_reason\" IS NULL) OR (\"electoral\".\"center_area_assignments\".\"ended_at\" >= \"electoral\".\"center_area_assignments\".\"started_at\" AND length(trim(\"electoral\".\"center_area_assignments\".\"ended_reason\")) BETWEEN 3 AND 500)"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.center_area_documents": {
+      "name": "center_area_documents",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "center_election_id": {
+          "name": "center_election_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "area_id": {
+          "name": "area_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "storage_path": {
+          "name": "storage_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "filename": {
+          "name": "filename",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "mime_type": {
+          "name": "mime_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "byte_size": {
+          "name": "byte_size",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uploaded_by": {
+          "name": "uploaded_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "center_area_documents_center_election_id_organization_id_event_id_center_elections_id_organization_id_event_id_fk": {
+          "name": "center_area_documents_center_election_id_organization_id_event_id_center_elections_id_organization_id_event_id_fk",
+          "tableFrom": "center_area_documents",
+          "tableTo": "center_elections",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "center_election_id",
+            "organization_id",
+            "event_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "event_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "center_area_documents_area_id_organization_id_functional_areas_id_organization_id_fk": {
+          "name": "center_area_documents_area_id_organization_id_functional_areas_id_organization_id_fk",
+          "tableFrom": "center_area_documents",
+          "tableTo": "functional_areas",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "area_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "center_area_documents_storage_path_unique": {
+          "name": "center_area_documents_storage_path_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "storage_path"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "center_document_size": {
+          "name": "center_document_size",
+          "value": "\"electoral\".\"center_area_documents\".\"byte_size\" BETWEEN 1 AND 5242880"
+        },
+        "center_document_type": {
+          "name": "center_document_type",
+          "value": "\"electoral\".\"center_area_documents\".\"mime_type\" IN ('application/pdf','image/jpeg','image/png')"
+        },
+        "center_document_category": {
+          "name": "center_document_category",
+          "value": "\"electoral\".\"center_area_documents\".\"category\" IN ('contrato','cedula','otro')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.center_elections": {
+      "name": "center_elections",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "center_id": {
+          "name": "center_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "district_id": {
+          "name": "district_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tse_code": {
+          "name": "tse_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "electoral_district_code": {
+          "name": "electoral_district_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "internal_status": {
+          "name": "internal_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'borrador'"
+        },
+        "official_status": {
+          "name": "official_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'sin_verificar'"
+        },
+        "reported_board_count": {
+          "name": "reported_board_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "data_source": {
+          "name": "data_source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'manual'"
+        },
+        "source_reference": {
+          "name": "source_reference",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "official_center_code_event": {
+          "name": "official_center_code_event",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "tse_code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"center_elections\".\"tse_code\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "center_scope_idx": {
+          "name": "center_scope_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "district_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "center_elections_organization_id_canton_id_organization_cantons_organization_id_canton_id_fk": {
+          "name": "center_elections_organization_id_canton_id_organization_cantons_organization_id_canton_id_fk",
+          "tableFrom": "center_elections",
+          "tableTo": "organization_cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "center_elections_center_id_organization_id_voting_centers_id_organization_id_fk": {
+          "name": "center_elections_center_id_organization_id_voting_centers_id_organization_id_fk",
+          "tableFrom": "center_elections",
+          "tableTo": "voting_centers",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "center_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "center_elections_event_id_organization_id_election_events_id_organization_id_fk": {
+          "name": "center_elections_event_id_organization_id_election_events_id_organization_id_fk",
+          "tableFrom": "center_elections",
+          "tableTo": "election_events",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "event_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "center_elections_district_id_canton_id_districts_id_canton_id_fk": {
+          "name": "center_elections_district_id_canton_id_districts_id_canton_id_fk",
+          "tableFrom": "center_elections",
+          "tableTo": "districts",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "district_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "center_elections_center_id_event_id_unique": {
+          "name": "center_elections_center_id_event_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "center_id",
+            "event_id"
+          ]
+        },
+        "center_elections_id_organization_id_event_id_unique": {
+          "name": "center_elections_id_organization_id_event_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "event_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "center_board_count": {
+          "name": "center_board_count",
+          "value": "\"electoral\".\"center_elections\".\"reported_board_count\" IS NULL OR \"electoral\".\"center_elections\".\"reported_board_count\" >= 0"
+        },
+        "center_internal_status": {
+          "name": "center_internal_status",
+          "value": "\"electoral\".\"center_elections\".\"internal_status\" IN ('borrador', 'pendiente', 'validado', 'inactivo')"
+        },
+        "center_source": {
+          "name": "center_source",
+          "value": "\"electoral\".\"center_elections\".\"data_source\" IN ('manual', 'oficial', 'demo')"
+        },
+        "center_official_status": {
+          "name": "center_official_status",
+          "value": "\"electoral\".\"center_elections\".\"official_status\" IN ('sin_verificar', 'ratificado', 'no_ratificado')"
+        },
+        "center_official_evidence": {
+          "name": "center_official_evidence",
+          "value": "\"electoral\".\"center_elections\".\"official_status\" = 'sin_verificar' OR (\"electoral\".\"center_elections\".\"data_source\" = 'oficial' AND \"electoral\".\"center_elections\".\"source_reference\" IS NOT NULL AND \"electoral\".\"center_elections\".\"verified_at\" IS NOT NULL)"
+        },
+        "center_demo_not_official": {
+          "name": "center_demo_not_official",
+          "value": "\"electoral\".\"center_elections\".\"data_source\" <> 'demo' OR (\"electoral\".\"center_elections\".\"tse_code\" IS NULL AND \"electoral\".\"center_elections\".\"official_status\" = 'sin_verificar')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.districts": {
+      "name": "districts",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "official_code": {
+          "name": "official_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "district_canton_idx": {
+          "name": "district_canton_idx",
+          "columns": [
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "districts_canton_id_cantons_id_fk": {
+          "name": "districts_canton_id_cantons_id_fk",
+          "tableFrom": "districts",
+          "tableTo": "cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "districts_id_canton_id_unique": {
+          "name": "districts_id_canton_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "canton_id"
+          ]
+        },
+        "districts_canton_id_official_code_unique": {
+          "name": "districts_canton_id_official_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "canton_id",
+            "official_code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.election_events": {
+      "name": "election_events",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "election_date": {
+          "name": "election_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_demo": {
+          "name": "is_demo",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "election_events_organization_id_organizations_id_fk": {
+          "name": "election_events_organization_id_organizations_id_fk",
+          "tableFrom": "election_events",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "election_events_id_organization_id_unique": {
+          "name": "election_events_id_organization_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.functional_areas": {
+      "name": "functional_areas",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "functional_areas_organization_id_organizations_id_fk": {
+          "name": "functional_areas_organization_id_organizations_id_fk",
+          "tableFrom": "functional_areas",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "functional_areas_id_organization_id_unique": {
+          "name": "functional_areas_id_organization_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id"
+          ]
+        },
+        "functional_areas_organization_id_code_unique": {
+          "name": "functional_areas_organization_id_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.inventory_decisions": {
+      "name": "inventory_decisions",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "movement_id": {
+          "name": "movement_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "approved": {
+          "name": "approved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "inventory_decision_movement": {
+          "name": "inventory_decision_movement",
+          "tableFrom": "inventory_decisions",
+          "tableTo": "inventory_movements",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "movement_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "inventory_decisions_movement_id_unique": {
+          "name": "inventory_decisions_movement_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "movement_id"
+          ]
+        }
+      },
+      "policies": {
+        "inventory_decisions_server_read": {
+          "name": "inventory_decisions_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "inventory_decision_reason": {
+          "name": "inventory_decision_reason",
+          "value": "length(trim(\"electoral\".\"inventory_decisions\".\"reason\")) between 3 and 500"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.inventory_items": {
+      "name": "inventory_items",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "variant": {
+          "name": "variant",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "unit": {
+          "name": "unit",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "inventory_item_identity": {
+          "name": "inventory_item_identity",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "lower(trim(\"name\"))",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "lower(trim(\"variant\"))",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "unit",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "inventory_item_canton": {
+          "name": "inventory_item_canton",
+          "tableFrom": "inventory_items",
+          "tableTo": "organization_cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "inventory_item_scope": {
+          "name": "inventory_item_scope",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ]
+        }
+      },
+      "policies": {
+        "inventory_items_server_read": {
+          "name": "inventory_items_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "inventory_item_text": {
+          "name": "inventory_item_text",
+          "value": "length(trim(\"electoral\".\"inventory_items\".\"name\")) between 2 and 120 and length(\"electoral\".\"inventory_items\".\"variant\") <= 100 and length(trim(\"electoral\".\"inventory_items\".\"category\")) between 2 and 80 and \"electoral\".\"inventory_items\".\"unit\" in ('pieza','caja','paquete','docena','metro','litro','kilogramo') and \"electoral\".\"inventory_items\".\"version\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.inventory_locations": {
+      "name": "inventory_locations",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "district_id": {
+          "name": "district_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "center_id": {
+          "name": "center_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "inventory_location_name": {
+          "name": "inventory_location_name",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "lower(trim(\"name\"))",
+              "asc": true,
+              "isExpression": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"inventory_locations\".\"kind\"='almacen'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "inventory_location_district": {
+          "name": "inventory_location_district",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "district_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"inventory_locations\".\"kind\"='distrito'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "inventory_location_center": {
+          "name": "inventory_location_center",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "center_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"inventory_locations\".\"kind\"='centro'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "inventory_location_person": {
+          "name": "inventory_location_person",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "person_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"inventory_locations\".\"kind\"='persona'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "inventory_location_canton": {
+          "name": "inventory_location_canton",
+          "tableFrom": "inventory_locations",
+          "tableTo": "organization_cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_location_district_fk": {
+          "name": "inventory_location_district_fk",
+          "tableFrom": "inventory_locations",
+          "tableTo": "districts",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "district_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_location_center_fk": {
+          "name": "inventory_location_center_fk",
+          "tableFrom": "inventory_locations",
+          "tableTo": "center_elections",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "center_id",
+            "organization_id",
+            "event_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "event_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_location_person_fk": {
+          "name": "inventory_location_person_fk",
+          "tableFrom": "inventory_locations",
+          "tableTo": "people",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "person_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "inventory_location_scope": {
+          "name": "inventory_location_scope",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ]
+        }
+      },
+      "policies": {
+        "inventory_locations_server_read": {
+          "name": "inventory_locations_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "inventory_location_kind": {
+          "name": "inventory_location_kind",
+          "value": "length(trim(\"electoral\".\"inventory_locations\".\"name\")) between 2 and 160 and ((\"electoral\".\"inventory_locations\".\"kind\"='almacen' and \"electoral\".\"inventory_locations\".\"district_id\" is null and \"electoral\".\"inventory_locations\".\"center_id\" is null and \"electoral\".\"inventory_locations\".\"person_id\" is null and \"electoral\".\"inventory_locations\".\"event_id\" is null) or (\"electoral\".\"inventory_locations\".\"kind\"='distrito' and \"electoral\".\"inventory_locations\".\"district_id\" is not null and \"electoral\".\"inventory_locations\".\"center_id\" is null and \"electoral\".\"inventory_locations\".\"person_id\" is null and \"electoral\".\"inventory_locations\".\"event_id\" is null) or (\"electoral\".\"inventory_locations\".\"kind\"='centro' and \"electoral\".\"inventory_locations\".\"center_id\" is not null and \"electoral\".\"inventory_locations\".\"event_id\" is not null and \"electoral\".\"inventory_locations\".\"district_id\" is null and \"electoral\".\"inventory_locations\".\"person_id\" is null) or (\"electoral\".\"inventory_locations\".\"kind\"='persona' and \"electoral\".\"inventory_locations\".\"person_id\" is not null and \"electoral\".\"inventory_locations\".\"district_id\" is null and \"electoral\".\"inventory_locations\".\"center_id\" is null and \"electoral\".\"inventory_locations\".\"event_id\" is null))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.inventory_movements": {
+      "name": "inventory_movements",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "item_id": {
+          "name": "item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "numeric(14, 3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "source_id": {
+          "name": "source_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "destination_id": {
+          "name": "destination_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "occurred_on": {
+          "name": "occurred_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "origin": {
+          "name": "origin",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "evidence": {
+          "name": "evidence",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "inventory_movement_scope_date": {
+          "name": "inventory_movement_scope_date",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "occurred_on",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "inventory_movement_item": {
+          "name": "inventory_movement_item",
+          "tableFrom": "inventory_movements",
+          "tableTo": "inventory_items",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "item_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_movement_source": {
+          "name": "inventory_movement_source",
+          "tableFrom": "inventory_movements",
+          "tableTo": "inventory_locations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "source_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_movement_destination": {
+          "name": "inventory_movement_destination",
+          "tableFrom": "inventory_movements",
+          "tableTo": "inventory_locations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "destination_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_movement_event": {
+          "name": "inventory_movement_event",
+          "tableFrom": "inventory_movements",
+          "tableTo": "election_events",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "event_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_movement_person": {
+          "name": "inventory_movement_person",
+          "tableFrom": "inventory_movements",
+          "tableTo": "people",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "person_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "inventory_movement_scope": {
+          "name": "inventory_movement_scope",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ]
+        },
+        "inventory_movement_request": {
+          "name": "inventory_movement_request",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "canton_id",
+            "request_id"
+          ]
+        }
+      },
+      "policies": {
+        "inventory_movements_server_read": {
+          "name": "inventory_movements_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "inventory_movement_data": {
+          "name": "inventory_movement_data",
+          "value": "\"electoral\".\"inventory_movements\".\"quantity\" > 0 and \"electoral\".\"inventory_movements\".\"quantity\" <> 'NaN'::numeric and length(trim(\"electoral\".\"inventory_movements\".\"reason\")) between 3 and 500 and length(\"electoral\".\"inventory_movements\".\"evidence\") <= 500 and length(\"electoral\".\"inventory_movements\".\"origin\") <= 160 and (\"electoral\".\"inventory_movements\".\"kind\"<>'ingreso' or length(trim(\"electoral\".\"inventory_movements\".\"origin\")) >= 2) and ((\"electoral\".\"inventory_movements\".\"kind\"='ingreso' and \"electoral\".\"inventory_movements\".\"source_id\" is null and \"electoral\".\"inventory_movements\".\"destination_id\" is not null) or (\"electoral\".\"inventory_movements\".\"kind\"='transferencia' and \"electoral\".\"inventory_movements\".\"source_id\" is not null and \"electoral\".\"inventory_movements\".\"destination_id\" is not null and \"electoral\".\"inventory_movements\".\"source_id\"<>\"electoral\".\"inventory_movements\".\"destination_id\") or (\"electoral\".\"inventory_movements\".\"kind\" in ('consumo','dano','perdida','robo','baja') and \"electoral\".\"inventory_movements\".\"source_id\" is not null and \"electoral\".\"inventory_movements\".\"destination_id\" is null))"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.inventory_needs": {
+      "name": "inventory_needs",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "item_id": {
+          "name": "item_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "required": {
+          "name": "required",
+          "type": "numeric(14, 3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "inventory_need_item": {
+          "name": "inventory_need_item",
+          "tableFrom": "inventory_needs",
+          "tableTo": "inventory_items",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "item_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_need_location": {
+          "name": "inventory_need_location",
+          "tableFrom": "inventory_needs",
+          "tableTo": "inventory_locations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "location_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inventory_need_event": {
+          "name": "inventory_need_event",
+          "tableFrom": "inventory_needs",
+          "tableTo": "election_events",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "event_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "inventory_need_revision": {
+          "name": "inventory_need_revision",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "canton_id",
+            "event_id",
+            "item_id",
+            "location_id",
+            "revision"
+          ]
+        }
+      },
+      "policies": {
+        "inventory_needs_server_read": {
+          "name": "inventory_needs_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "inventory_need_quantity": {
+          "name": "inventory_need_quantity",
+          "value": "\"electoral\".\"inventory_needs\".\"required\" >= 0 and \"electoral\".\"inventory_needs\".\"required\" <> 'NaN'::numeric and \"electoral\".\"inventory_needs\".\"revision\" > 0"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.organization_memberships": {
+      "name": "organization_memberships",
+      "schema": "electoral",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'member'"
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organization_memberships_organization_id_organizations_id_fk": {
+          "name": "organization_memberships_organization_id_organizations_id_fk",
+          "tableFrom": "organization_memberships",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "organization_memberships_organization_id_user_id_pk": {
+          "name": "organization_memberships_organization_id_user_id_pk",
+          "columns": [
+            "organization_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "membership_role": {
+          "name": "membership_role",
+          "value": "\"electoral\".\"organization_memberships\".\"role\" IN ('admin', 'member')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.module_permissions": {
+      "name": "module_permissions",
+      "schema": "electoral",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "module": {
+          "name": "module",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "permission_membership_fk": {
+          "name": "permission_membership_fk",
+          "tableFrom": "module_permissions",
+          "tableTo": "organization_memberships",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "user_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "permission_scope_fk": {
+          "name": "permission_scope_fk",
+          "tableFrom": "module_permissions",
+          "tableTo": "organization_cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "module_permissions_organization_id_user_id_canton_id_module_pk": {
+          "name": "module_permissions_organization_id_user_id_canton_id_module_pk",
+          "columns": [
+            "organization_id",
+            "user_id",
+            "canton_id",
+            "module"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {
+        "permission_module": {
+          "name": "permission_module",
+          "value": "\"electoral\".\"module_permissions\".\"module\" IN ('district','organigrama','centros','A01','A02','A03','A04','A05','A06','A07','A08','A09')"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.organization_cantons": {
+      "name": "organization_cantons",
+      "schema": "electoral",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "organization_cantons_organization_id_organizations_id_fk": {
+          "name": "organization_cantons_organization_id_organizations_id_fk",
+          "tableFrom": "organization_cantons",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organization_cantons_canton_id_cantons_id_fk": {
+          "name": "organization_cantons_canton_id_cantons_id_fk",
+          "tableFrom": "organization_cantons",
+          "tableTo": "cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "organization_cantons_organization_id_canton_id_pk": {
+          "name": "organization_cantons_organization_id_canton_id_pk",
+          "columns": [
+            "organization_id",
+            "canton_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.organizations": {
+      "name": "organizations",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.people": {
+      "name": "people",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "full_name": {
+          "name": "full_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "people_org_idx": {
+          "name": "people_org_idx",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "people_organization_id_organizations_id_fk": {
+          "name": "people_organization_id_organizations_id_fk",
+          "tableFrom": "people",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "person_org_unique": {
+          "name": "person_org_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "person_name_required": {
+          "name": "person_name_required",
+          "value": "length(trim(\"electoral\".\"people\".\"full_name\")) BETWEEN 2 AND 160"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.organizational_positions": {
+      "name": "organizational_positions",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "district_id": {
+          "name": "district_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "functional_area_id": {
+          "name": "functional_area_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sectoral_movement_id": {
+          "name": "sectoral_movement_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parent_position_id": {
+          "name": "parent_position_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "counts_for_coverage": {
+          "name": "counts_for_coverage",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "one_general_position": {
+          "name": "one_general_position",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"organizational_positions\".\"active\" AND \"electoral\".\"organizational_positions\".\"kind\" = 'general'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "one_district_position": {
+          "name": "one_district_position",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "district_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"organizational_positions\".\"active\" AND \"electoral\".\"organizational_positions\".\"kind\" = 'district'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "one_area_position": {
+          "name": "one_area_position",
+          "columns": [
+            {
+              "expression": "organization_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "canton_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "functional_area_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"organizational_positions\".\"active\" AND \"electoral\".\"organizational_positions\".\"kind\" = 'area'",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "organizational_positions_parent_position_id_organizational_positions_id_fk": {
+          "name": "organizational_positions_parent_position_id_organizational_positions_id_fk",
+          "tableFrom": "organizational_positions",
+          "tableTo": "organizational_positions",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "parent_position_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organizational_positions_organization_id_canton_id_organization_cantons_organization_id_canton_id_fk": {
+          "name": "organizational_positions_organization_id_canton_id_organization_cantons_organization_id_canton_id_fk",
+          "tableFrom": "organizational_positions",
+          "tableTo": "organization_cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organizational_positions_district_id_canton_id_districts_id_canton_id_fk": {
+          "name": "organizational_positions_district_id_canton_id_districts_id_canton_id_fk",
+          "tableFrom": "organizational_positions",
+          "tableTo": "districts",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "district_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organizational_positions_functional_area_id_organization_id_functional_areas_id_organization_id_fk": {
+          "name": "organizational_positions_functional_area_id_organization_id_functional_areas_id_organization_id_fk",
+          "tableFrom": "organizational_positions",
+          "tableTo": "functional_areas",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "functional_area_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "organizational_positions_sectoral_movement_id_organization_id_sectoral_movements_id_organization_id_fk": {
+          "name": "organizational_positions_sectoral_movement_id_organization_id_sectoral_movements_id_organization_id_fk",
+          "tableFrom": "organizational_positions",
+          "tableTo": "sectoral_movements",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "sectoral_movement_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "position_parent_scope_fk": {
+          "name": "position_parent_scope_fk",
+          "tableFrom": "organizational_positions",
+          "tableTo": "organizational_positions",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "parent_position_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "organizational_positions_organization_id_canton_id_code_unique": {
+          "name": "organizational_positions_organization_id_canton_id_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "canton_id",
+            "code"
+          ]
+        },
+        "organizational_positions_id_organization_id_canton_id_unique": {
+          "name": "organizational_positions_id_organization_id_canton_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "position_scope": {
+          "name": "position_scope",
+          "value": "(\"electoral\".\"organizational_positions\".\"kind\" = 'general' AND \"electoral\".\"organizational_positions\".\"district_id\" IS NULL AND \"electoral\".\"organizational_positions\".\"functional_area_id\" IS NULL AND \"electoral\".\"organizational_positions\".\"sectoral_movement_id\" IS NULL) OR (\"electoral\".\"organizational_positions\".\"kind\" IN ('district', 'district_substitute') AND \"electoral\".\"organizational_positions\".\"district_id\" IS NOT NULL AND \"electoral\".\"organizational_positions\".\"functional_area_id\" IS NULL AND \"electoral\".\"organizational_positions\".\"sectoral_movement_id\" IS NULL) OR (\"electoral\".\"organizational_positions\".\"kind\" = 'area' AND \"electoral\".\"organizational_positions\".\"district_id\" IS NULL AND \"electoral\".\"organizational_positions\".\"functional_area_id\" IS NOT NULL AND \"electoral\".\"organizational_positions\".\"sectoral_movement_id\" IS NULL) OR (\"electoral\".\"organizational_positions\".\"kind\" = 'area_link' AND \"electoral\".\"organizational_positions\".\"district_id\" IS NOT NULL AND \"electoral\".\"organizational_positions\".\"functional_area_id\" IS NOT NULL AND \"electoral\".\"organizational_positions\".\"sectoral_movement_id\" IS NULL) OR (\"electoral\".\"organizational_positions\".\"kind\" IN ('movement', 'movement_link') AND \"electoral\".\"organizational_positions\".\"functional_area_id\" IS NULL AND \"electoral\".\"organizational_positions\".\"sectoral_movement_id\" IS NOT NULL)"
+        },
+        "position_not_self_parent": {
+          "name": "position_not_self_parent",
+          "value": "\"electoral\".\"organizational_positions\".\"parent_position_id\" IS DISTINCT FROM \"electoral\".\"organizational_positions\".\"id\""
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.registration_authorizations": {
+      "name": "registration_authorizations",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "identifier_hash": {
+          "name": "identifier_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "identifier_hint": {
+          "name": "identifier_hint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "activation_hash": {
+          "name": "activation_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'member'"
+        },
+        "modules": {
+          "name": "modules",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::text[]"
+        },
+        "authorized_by": {
+          "name": "authorized_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "claim_token": {
+          "name": "claim_token",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "claim_expires_at": {
+          "name": "claim_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "registration_authorizations_organization_id_organizations_id_fk": {
+          "name": "registration_authorizations_organization_id_organizations_id_fk",
+          "tableFrom": "registration_authorizations",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "registration_scope_fk": {
+          "name": "registration_scope_fk",
+          "tableFrom": "registration_authorizations",
+          "tableTo": "organization_cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "registration_authorizations_identifier_hash_unique": {
+          "name": "registration_authorizations_identifier_hash_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "identifier_hash"
+          ]
+        },
+        "registration_authorizations_user_id_unique": {
+          "name": "registration_authorizations_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "user_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "registration_role": {
+          "name": "registration_role",
+          "value": "\"electoral\".\"registration_authorizations\".\"role\" IN ('admin','member')"
+        },
+        "registration_modules": {
+          "name": "registration_modules",
+          "value": "\"electoral\".\"registration_authorizations\".\"modules\" <@ ARRAY['district','organigrama','centros','A01','A02','A03','A04','A05','A06','A07','A08','A09']::text[]"
+        }
+      },
+      "isRLSEnabled": false
+    },
+    "electoral.sectoral_movements": {
+      "name": "sectoral_movements",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "normalized_name": {
+          "name": "normalized_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "sectoral_movements_organization_id_organizations_id_fk": {
+          "name": "sectoral_movements_organization_id_organizations_id_fk",
+          "tableFrom": "sectoral_movements",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "sectoral_movements_id_organization_id_unique": {
+          "name": "sectoral_movements_id_organization_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id"
+          ]
+        },
+        "sectoral_movements_organization_id_normalized_name_unique": {
+          "name": "sectoral_movements_organization_id_normalized_name_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "normalized_name"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.training_progress": {
+      "name": "training_progress",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "requirement_id": {
+          "name": "requirement_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "assignment_id": {
+          "name": "assignment_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position_id": {
+          "name": "position_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status_on": {
+          "name": "status_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "training_progress_requirement_id_organization_id_canton_id_event_id_position_id_training_requirements_id_organization_id_canton_id_event_id_position_id_fk": {
+          "name": "training_progress_requirement_id_organization_id_canton_id_event_id_position_id_training_requirements_id_organization_id_canton_id_event_id_position_id_fk",
+          "tableFrom": "training_progress",
+          "tableTo": "training_requirements",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "requirement_id",
+            "organization_id",
+            "canton_id",
+            "event_id",
+            "position_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id",
+            "event_id",
+            "position_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "training_progress_assignment_id_organization_id_canton_id_position_id_organizational_assignments_id_organization_id_canton_id_position_id_fk": {
+          "name": "training_progress_assignment_id_organization_id_canton_id_position_id_organizational_assignments_id_organization_id_canton_id_position_id_fk",
+          "tableFrom": "training_progress",
+          "tableTo": "organizational_assignments",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "assignment_id",
+            "organization_id",
+            "canton_id",
+            "position_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id",
+            "position_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "training_progress_requirement_id_assignment_id_sequence_unique": {
+          "name": "training_progress_requirement_id_assignment_id_sequence_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "requirement_id",
+            "assignment_id",
+            "sequence"
+          ]
+        }
+      },
+      "policies": {
+        "training_progress_server_read": {
+          "name": "training_progress_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "training_progress_status": {
+          "name": "training_progress_status",
+          "value": "\"electoral\".\"training_progress\".\"status\" IN ('pendiente','convocado','cumplido','no_asistio') AND \"electoral\".\"training_progress\".\"sequence\" > 0"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "electoral.training_requirements": {
+      "name": "training_requirements",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position_id": {
+          "name": "position_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "required": {
+          "name": "required",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_on": {
+          "name": "scheduled_on",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_by": {
+          "name": "created_by",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "training_requirements_position_id_organization_id_canton_id_organizational_positions_id_organization_id_canton_id_fk": {
+          "name": "training_requirements_position_id_organization_id_canton_id_organizational_positions_id_organization_id_canton_id_fk",
+          "tableFrom": "training_requirements",
+          "tableTo": "organizational_positions",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "position_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "training_requirements_event_id_organization_id_election_events_id_organization_id_fk": {
+          "name": "training_requirements_event_id_organization_id_election_events_id_organization_id_fk",
+          "tableFrom": "training_requirements",
+          "tableTo": "election_events",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "event_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "training_requirements_position_id_event_id_revision_unique": {
+          "name": "training_requirements_position_id_event_id_revision_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "position_id",
+            "event_id",
+            "revision"
+          ]
+        },
+        "training_requirement_scope": {
+          "name": "training_requirement_scope",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "canton_id",
+            "event_id",
+            "position_id"
+          ]
+        }
+      },
+      "policies": {
+        "training_requirements_server_read": {
+          "name": "training_requirements_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "training_requirement_revision": {
+          "name": "training_requirement_revision",
+          "value": "\"electoral\".\"training_requirements\".\"revision\" > 0 AND (\"electoral\".\"training_requirements\".\"required\" OR \"electoral\".\"training_requirements\".\"scheduled_on\" IS NULL)"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "electoral.user_people": {
+      "name": "user_people",
+      "schema": "electoral",
+      "columns": {
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "person_id": {
+          "name": "person_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_person_membership_fk": {
+          "name": "user_person_membership_fk",
+          "tableFrom": "user_people",
+          "tableTo": "organization_memberships",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "user_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "user_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "user_person_person_fk": {
+          "name": "user_person_person_fk",
+          "tableFrom": "user_people",
+          "tableTo": "people",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "person_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "user_people_organization_id_user_id_pk": {
+          "name": "user_people_organization_id_user_id_pk",
+          "columns": [
+            "organization_id",
+            "user_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "user_person_unique": {
+          "name": "user_person_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "person_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "electoral.vehicle_center_assignments": {
+      "name": "vehicle_center_assignments",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "vehicle_id": {
+          "name": "vehicle_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "center_election_id": {
+          "name": "center_election_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vehicle_center_current": {
+          "name": "vehicle_center_current",
+          "columns": [
+            {
+              "expression": "vehicle_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "center_election_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"vehicle_center_assignments\".\"ended_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vehicle_center_assignments_vehicle_id_organization_id_canton_id_vehicles_id_organization_id_canton_id_fk": {
+          "name": "vehicle_center_assignments_vehicle_id_organization_id_canton_id_vehicles_id_organization_id_canton_id_fk",
+          "tableFrom": "vehicle_center_assignments",
+          "tableTo": "vehicles",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "vehicle_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vehicle_center_assignments_center_election_id_organization_id_event_id_center_elections_id_organization_id_event_id_fk": {
+          "name": "vehicle_center_assignments_center_election_id_organization_id_event_id_center_elections_id_organization_id_event_id_fk",
+          "tableFrom": "vehicle_center_assignments",
+          "tableTo": "center_elections",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "center_election_id",
+            "organization_id",
+            "event_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "event_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "vehicle_centers_server_read": {
+          "name": "vehicle_centers_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "vehicle_center_dates": {
+          "name": "vehicle_center_dates",
+          "value": "\"electoral\".\"vehicle_center_assignments\".\"ended_at\" IS NULL OR \"electoral\".\"vehicle_center_assignments\".\"ended_at\" >= \"electoral\".\"vehicle_center_assignments\".\"started_at\""
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "electoral.vehicle_district_assignments": {
+      "name": "vehicle_district_assignments",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "vehicle_id": {
+          "name": "vehicle_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "district_id": {
+          "name": "district_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "vehicle_district_current": {
+          "name": "vehicle_district_current",
+          "columns": [
+            {
+              "expression": "vehicle_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "district_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"electoral\".\"vehicle_district_assignments\".\"ended_at\" IS NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "vehicle_district_assignments_vehicle_id_organization_id_canton_id_vehicles_id_organization_id_canton_id_fk": {
+          "name": "vehicle_district_assignments_vehicle_id_organization_id_canton_id_vehicles_id_organization_id_canton_id_fk",
+          "tableFrom": "vehicle_district_assignments",
+          "tableTo": "vehicles",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "vehicle_id",
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vehicle_district_assignments_district_id_canton_id_districts_id_canton_id_fk": {
+          "name": "vehicle_district_assignments_district_id_canton_id_districts_id_canton_id_fk",
+          "tableFrom": "vehicle_district_assignments",
+          "tableTo": "districts",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "district_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vehicle_district_assignments_event_id_organization_id_election_events_id_organization_id_fk": {
+          "name": "vehicle_district_assignments_event_id_organization_id_election_events_id_organization_id_fk",
+          "tableFrom": "vehicle_district_assignments",
+          "tableTo": "election_events",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "event_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {
+        "vehicle_districts_server_read": {
+          "name": "vehicle_districts_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "vehicle_district_dates": {
+          "name": "vehicle_district_dates",
+          "value": "\"electoral\".\"vehicle_district_assignments\".\"ended_at\" IS NULL OR \"electoral\".\"vehicle_district_assignments\".\"ended_at\" >= \"electoral\".\"vehicle_district_assignments\".\"started_at\""
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "electoral.vehicles": {
+      "name": "vehicles",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "canton_id": {
+          "name": "canton_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plate": {
+          "name": "plate",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "responsible_id": {
+          "name": "responsible_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "active": {
+          "name": "active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "vehicles_organization_id_canton_id_organization_cantons_organization_id_canton_id_fk": {
+          "name": "vehicles_organization_id_canton_id_organization_cantons_organization_id_canton_id_fk",
+          "tableFrom": "vehicles",
+          "tableTo": "organization_cantons",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id",
+            "canton_id"
+          ],
+          "columnsTo": [
+            "organization_id",
+            "canton_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "vehicles_responsible_id_organization_id_people_id_organization_id_fk": {
+          "name": "vehicles_responsible_id_organization_id_people_id_organization_id_fk",
+          "tableFrom": "vehicles",
+          "tableTo": "people",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "responsible_id",
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id",
+            "organization_id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "vehicles_id_organization_id_canton_id_unique": {
+          "name": "vehicles_id_organization_id_canton_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id",
+            "canton_id"
+          ]
+        },
+        "vehicles_organization_id_plate_unique": {
+          "name": "vehicles_organization_id_plate_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "organization_id",
+            "plate"
+          ]
+        }
+      },
+      "policies": {
+        "vehicles_server_read": {
+          "name": "vehicles_server_read",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "electoral_app"
+          ],
+          "using": "true"
+        }
+      },
+      "checkConstraints": {
+        "vehicle_text": {
+          "name": "vehicle_text",
+          "value": "\"electoral\".\"vehicles\".\"plate\" ~ '^[A-Z0-9-]{2,20}$' AND length(trim(\"electoral\".\"vehicles\".\"description\")) BETWEEN 2 AND 160 AND \"electoral\".\"vehicles\".\"version\" > 0"
+        }
+      },
+      "isRLSEnabled": true
+    },
+    "electoral.voting_centers": {
+      "name": "voting_centers",
+      "schema": "electoral",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "latitude": {
+          "name": "latitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "longitude": {
+          "name": "longitude",
+          "type": "double precision",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact_phone": {
+          "name": "contact_phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "archived_at": {
+          "name": "archived_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "voting_centers_organization_id_organizations_id_fk": {
+          "name": "voting_centers_organization_id_organizations_id_fk",
+          "tableFrom": "voting_centers",
+          "tableTo": "organizations",
+          "schemaTo": "electoral",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "voting_centers_id_organization_id_unique": {
+          "name": "voting_centers_id_organization_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "id",
+            "organization_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {
+        "center_coordinates": {
+          "name": "center_coordinates",
+          "value": "(\"electoral\".\"voting_centers\".\"latitude\" IS NULL AND \"electoral\".\"voting_centers\".\"longitude\" IS NULL) OR (\"electoral\".\"voting_centers\".\"latitude\" IS NOT NULL AND \"electoral\".\"voting_centers\".\"longitude\" IS NOT NULL AND \"electoral\".\"voting_centers\".\"latitude\" BETWEEN -90 AND 90 AND \"electoral\".\"voting_centers\".\"longitude\" BETWEEN -180 AND 180)"
+        },
+        "center_required_text": {
+          "name": "center_required_text",
+          "value": "length(trim(\"electoral\".\"voting_centers\".\"name\")) > 0 AND length(trim(\"electoral\".\"voting_centers\".\"address\")) > 0"
+        }
+      },
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {
+    "electoral": "electoral"
+  },
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

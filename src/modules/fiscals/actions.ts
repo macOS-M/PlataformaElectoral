@@ -1,0 +1,9 @@
+"use server";
+import { revalidatePath } from "next/cache";
+import { addBoard,assignFiscal,addFiscalPerson } from "./service";
+export type FiscalState={error:string;success:string};
+function failure(error:unknown):FiscalState{const e=error as {code?:string;cause?:{code?:string}};const code=e.cause?.code??e.code;return {success:"",error:code==="40001"?"La asignación cambió. Recargá antes de guardar.":code==="23505"?"La JRV ya existe en este evento o la persona ya ocupa un puesto incompatible en este destino.":"No se pudo guardar. Revisá centro, JRV, persona, motivo y permiso electoral."};}
+function refresh(centerId:string){revalidatePath(`/centros/${centerId}`);revalidatePath(`/centros/${centerId}/organigrama`);revalidatePath(`/centros/${centerId}/fiscales`);}
+export async function addBoardAction(_state:FiscalState,form:FormData):Promise<FiscalState>{try{await addBoard(Object.fromEntries(form));}catch(error){return failure(error);}refresh(String(form.get("centerId")));return {error:"",success:"JRV registrada como dato manual, sin verificación oficial automática."};}
+export async function assignFiscalAction(_state:FiscalState,form:FormData):Promise<FiscalState>{try{await assignFiscal(Object.fromEntries(form));}catch(error){return failure(error);}refresh(String(form.get("centerId")));return {error:"",success:"Asignación guardada. Se conservó el historial; no se otorgó acreditación ni acceso a la plataforma."};}
+export async function addFiscalPersonAction(_state:FiscalState,form:FormData):Promise<FiscalState>{try{await addFiscalPerson(Object.fromEntries(form));}catch(error){return failure(error);}refresh(String(form.get("centerId")));return {error:"",success:"Persona registrada en el directorio compartido. Ya podés seleccionarla para asignar un puesto; no se creó una cuenta."};}

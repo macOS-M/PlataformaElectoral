@@ -1,22 +1,25 @@
 "use client";
 import { useActionState, useId, useState } from "react";
+import { VehicleDocumentFields } from "./document-fields";
 import { saveVehicleAction } from "./actions";
 import type { TransportPerson, VehicleRow } from "./repository";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export function VehicleForm({ vehicle, people, districts, centers }: {
+export function VehicleForm({ vehicle, people, districts, centers, initialCenterId,registrationId:initialRegistrationId }: {
   vehicle?: VehicleRow; people: TransportPerson[]; districts: { id: string; name: string }[];
-  centers: { id: string; name: string; districtId: string }[];
+  centers: { id: string; name: string; districtId: string }[]; initialCenterId?:string;registrationId:string;
 }) {
   const prefix = useId();
+  const [registrationId]=useState(initialRegistrationId);
   const [state, action, pending] = useActionState(saveVehicleAction, { error: "", success: "" });
   const [personId, setPersonId] = useState(vehicle?.responsibleId ?? "");
   const person = people.find(p => p.id === personId);
-  const [districtIds, setDistrictIds] = useState(vehicle?.districtIds ?? []);
-  const [centerIds, setCenterIds] = useState(vehicle?.centerIds ?? []);
+  const [districtIds, setDistrictIds] = useState(vehicle?.districtIds ?? centers.filter(c=>c.id===initialCenterId).map(c=>c.districtId));
+  const [centerIds, setCenterIds] = useState(vehicle?.centerIds ?? (initialCenterId?[initialCenterId]:[]));
   const [active, setActive] = useState(vehicle?.active ?? true);
-  return <form action={action} className="space-y-4">
+  return <form action={action} onReset={event=>event.preventDefault()} className="space-y-4">
+    <input type="hidden" name="registrationId" value={registrationId}/>
     <input type="hidden" name="id" value={vehicle?.id ?? ""} />
     <input type="hidden" name="version" value={vehicle?.version ?? 0} />
     <input type="hidden" name="personVersion" value={person?.version ?? ""} />
@@ -24,11 +27,11 @@ export function VehicleForm({ vehicle, people, districts, centers }: {
       <div><label htmlFor={`${prefix}-plate`} className="mb-1 block text-sm">Placa</label><Input id={`${prefix}-plate`} name="plate" required minLength={2} maxLength={20} pattern="[A-Za-z0-9-]{2,20}" defaultValue={vehicle?.plate} /></div>
       <div><label htmlFor={`${prefix}-description`} className="mb-1 block text-sm">Descripción del vehículo</label><Input id={`${prefix}-description`} name="description" required minLength={2} maxLength={160} defaultValue={vehicle?.description} /></div>
     </div>
-    <div><label htmlFor={`${prefix}-person`} className="mb-1 block text-sm">Encargado</label>
+    <div><label htmlFor={`${prefix}-person`} className="mb-1 block text-sm">Conductor</label>
       <select id={`${prefix}-person`} name="personId" className="min-h-11 w-full rounded-lg border bg-card px-3 text-sm" value={personId} onChange={e => setPersonId(e.target.value)}>
-        <option value="">Registrar persona nueva</option>{people.map(p => <option key={p.id} value={p.id}>{p.fullName}{p.phone ? ` · ${p.phone}` : ""}</option>)}
+        <option value="">Registrar conductor nuevo</option>{people.map(p => <option key={p.id} value={p.id}>{p.fullName}{p.phone ? ` · ${p.phone}` : ""}</option>)}
       </select>
-      <p className="mt-1 text-xs text-muted-foreground">Selecciona la ficha existente para reutilizarla. Los contactos se comparten con sus otros cargos; registrar una persona no crea una cuenta.</p>
+      <p className="mt-1 text-xs text-muted-foreground">Selecciona la ficha existente para reutilizarla. Los contactos se comparten con sus otros cargos; registrar un conductor no crea una cuenta.</p>
     </div>
     <div key={`${personId}-${person?.version ?? ""}`} className="grid gap-4 sm:grid-cols-3">
       <div><label htmlFor={`${prefix}-name`} className="mb-1 block text-sm">Nombre completo</label><Input id={`${prefix}-name`} name="fullName" required minLength={2} maxLength={160} defaultValue={person?.fullName ?? ""} /></div>
@@ -49,10 +52,11 @@ export function VehicleForm({ vehicle, people, districts, centers }: {
       {centers.filter(c => districtIds.includes(c.districtId)).map(c => <label key={c.id} className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" name="centerIds" value={c.id} checked={centerIds.includes(c.id)} onChange={e => setCenterIds(e.target.checked ? [...centerIds, c.id] : centerIds.filter(id => id !== c.id))} />{c.name}</label>)}
       {!centers.some(c => districtIds.includes(c.districtId)) && <p className="text-sm text-muted-foreground">Selecciona un distrito con centros disponibles.</p>}
     </fieldset>
+    <details className="rounded-xl border p-4"><summary className="cursor-pointer text-sm font-semibold text-primary">Adjuntar documentos</summary><div className="mt-4"><VehicleDocumentFields categoryName="documentCategory" required={false}/></div></details>
     {!active && <p className="text-sm text-muted-foreground">Desactivar cierra las asignaciones vigentes del vehículo en todos los eventos; el historial se conserva.</p>}
-    {vehicle ? <div><label htmlFor={`${prefix}-reason`} className="mb-1 block text-sm">Motivo del cambio (sin datos personales)</label><Input id={`${prefix}-reason`} name="reason" required minLength={3} maxLength={500} /></div> : <input type="hidden" name="reason" value="" />}
+    {vehicle ? <div><label htmlFor={`${prefix}-reason`} className="mb-1 block text-sm">Motivo del cambio</label><Input id={`${prefix}-reason`} name="reason" required minLength={3} maxLength={500} /></div> : <input type="hidden" name="reason" value="" />}
     {state.error && <p role="alert" className="text-sm text-red-800">{state.error}</p>}
     {state.success && <p role="status" className="text-sm text-primary">{state.success}</p>}
-    <Button type="submit" disabled={pending}>{pending ? "Guardando…" : vehicle ? "Guardar vehículo" : "Registrar vehículo"}</Button>
+    <Button type="submit" disabled={pending||!registrationId}>{pending ? "Guardando…" : vehicle ? "Guardar conductor y vehículo" : "Registrar conductor y vehículo"}</Button>
   </form>;
 }

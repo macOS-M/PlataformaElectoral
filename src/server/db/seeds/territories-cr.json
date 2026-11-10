@@ -1,0 +1,15 @@
+{
+  "version": "cr-territories-test-2026-11-07",
+  "verifiedOn": "2026-11-07",
+  "provinceSource": "https://www.ministeriodesalud.go.cr/fhir/CodeSystem-provincias-cs.html",
+  "cantonSource": "https://www.ministeriodesalud.go.cr/fhir/CodeSystem-cantones-cs.html",
+  "provinces": [
+    { "code": "1", "name": "San José", "cantons": [{ "code": "101", "name": "San José" }, { "code": "102", "name": "Escazú" }, { "code": "103", "name": "Desamparados" }] },
+    { "code": "2", "name": "Alajuela", "cantons": [{ "code": "201", "name": "Alajuela" }, { "code": "202", "name": "San Ramón" }, { "code": "203", "name": "Grecia" }] },
+    { "code": "3", "name": "Cartago", "cantons": [{ "code": "301", "name": "Cartago" }, { "code": "302", "name": "Paraíso" }, { "code": "303", "name": "La Unión" }] },
+    { "code": "4", "name": "Heredia", "cantons": [{ "code": "401", "name": "Heredia" }, { "code": "402", "name": "Barva" }, { "code": "403", "name": "Santo Domingo" }] },
+    { "code": "5", "name": "Guanacaste", "cantons": [{ "code": "501", "name": "Liberia" }, { "code": "502", "name": "Nicoya" }, { "code": "503", "name": "Santa Cruz" }] },
+    { "code": "6", "name": "Puntarenas", "cantons": [{ "code": "601", "name": "Puntarenas" }, { "code": "602", "name": "Esparza" }, { "code": "603", "name": "Buenos Aires" }] },
+    { "code": "7", "name": "Limón", "cantons": [{ "code": "701", "name": "Limón" }, { "code": "702", "name": "Pococí" }, { "code": "703", "name": "Siquirres" }] }
+  ]
+}
