@@ -1,17 +1,38 @@
-# SIPEC — Instalación
+# SIPEC — Guía de instalación
+
+Esta guía permite instalar y ejecutar la plataforma en un equipo local. Puedes iniciar con la portada pública sin configurar servicios o preparar una instalación con Supabase para utilizar el acceso interno.
 
 ## Requisitos
 
 - Node.js 22 o superior y npm.
-- Un proyecto [Supabase](https://supabase.com/dashboard) con PostgreSQL, Auth y Storage.
+- Un proyecto [Supabase](https://supabase.com/dashboard) con PostgreSQL, Auth y Storage para utilizar las funciones internas.
 - Una copia del repositorio. Ejecuta los comandos desde la carpeta que contiene `package.json`.
 
 ## 1. Instalar dependencias
+
+Abre una terminal en la carpeta del repositorio y comprueba las herramientas:
+
+```powershell
+node --version
+npm --version
+```
+
+Instala las versiones fijadas en `package-lock.json` y crea el archivo de configuración sin sobrescribir uno existente:
 
 ```powershell
 npm ci
 if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }
 ```
+
+### Inicio rápido sin Supabase
+
+Para comprobar la instalación y ver la portada pública, deja las variables de conexión vacías y ejecuta:
+
+```powershell
+npm run dev
+```
+
+Abre [http://127.0.0.1:3000](http://127.0.0.1:3000). Este modo no permite acceder a datos internos. Detén el servidor con `Ctrl+C` y continúa con el paso 2 para configurar la instalación completa.
 
 ## 2. Configurar Supabase
 
@@ -27,8 +48,15 @@ AUTH_IDENTIFIER_SECRET=
 APP_SITE_URL=http://127.0.0.1:3000
 ```
 
-- `DATABASE_MIGRATION_URL`: conexión PostgreSQL administrativa.
-- `DATABASE_URL`: conexión con un usuario restringido miembro de `electoral_app`, preparado después de las migraciones; no usar el propietario.
+| Variable | Valor que debes configurar |
+| --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clave pública del mismo proyecto. |
+| `SUPABASE_SECRET_KEY` | Clave secreta del proyecto; se utiliza exclusivamente en el servidor. |
+| `DATABASE_MIGRATION_URL` | Conexión PostgreSQL administrativa para migraciones y carga inicial. |
+| `DATABASE_URL` | Conexión con un usuario restringido miembro de `electoral_app`, preparado en el paso 3; no usar el propietario. |
+| `APP_SITE_URL` | Origen de la aplicación; en local, `http://127.0.0.1:3000`. |
+
 - `AUTH_IDENTIFIER_SECRET`: secreto estable de al menos 32 caracteres. Genéralo con el comando siguiente y copia su salida en la variable:
 
 ```powershell
@@ -56,7 +84,12 @@ Completa `DATABASE_URL` con ese usuario y su contraseña, respetando el formato 
 
 En una base existente, revisa y respalda antes de aplicar migraciones. No cargues la demo sobre datos reales.
 
-## 4. Cargar datos de ejemplo (opcional)
+## 4. Preparar los datos iniciales
+
+Elige según el destino de la instalación:
+
+- **Demostración:** conserva los tres identificadores `APP_*_ID` de `.env.example` y carga los datos sintéticos con los pasos siguientes.
+- **Uso real:** prepara los registros de organización, cantón y evento y configura sus identificadores en `.env.local`. Esta guía no incluye un asistente para crear esos registros; deben existir antes de habilitar al administrador.
 
 En `.env.local`, cambia temporalmente `ALLOW_DEMO_SEED=true` y ejecuta:
 
@@ -123,4 +156,13 @@ npm run test:e2e
 
 Playwright necesita el puerto 3100 libre. Las pruebas aisladas no verifican Supabase Auth ni el correo real.
 
-Si PowerShell bloquea `npm.ps1`, usa `npm.cmd` y `npx.cmd` en lugar de `npm` y `npx`.
+## Solución de problemas
+
+| Problema | Qué revisar |
+| --- | --- |
+| PowerShell bloquea `npm.ps1` | Usa `npm.cmd` y `npx.cmd` en lugar de `npm` y `npx`. |
+| La portada abre pero no puedes usar el acceso interno | Comprueba las variables de Supabase y `DATABASE_URL`; reinicia el servidor después de editar `.env.local`. |
+| Fallan las migraciones | Revisa `DATABASE_MIGRATION_URL`, sus permisos y que la base pertenezca a un proyecto con Supabase Auth. |
+| No se puede habilitar al administrador | Verifica que el UUID corresponda a un usuario existente en Supabase Auth y que `APP_ORGANIZATION_ID` corresponda a una organización ya creada. |
+| Fallan los archivos adjuntos | Ejecuta los tres comandos del paso 6 y comprueba `SUPABASE_SECRET_KEY`. |
+| El puerto 3000 está ocupado | Detén el proceso que lo utiliza o ejecuta `npm run dev -- --port 3001`. Si cambias el puerto, actualiza `APP_SITE_URL` y las URL de Auth en Supabase para que coincidan. |
